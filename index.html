@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বুথ পর্যবেক্ষণ ও কর্মী ব্যবস্থাপনা</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>
+                <span data-lang="en">Booth Management & Worker System</span>
+                <span data-lang="hi">बूथ प्रबंधन और कार्यकर्ता प्रणाली</span>
+                <span data-lang="bn">বুথ পর্যবেক্ষণ ও কর্মী ব্যবস্থাপনা</span>
+                <div class="lang-switch">
+                    <button onclick="setLanguage('bn')" id="langBn" class="active">বাংলা</button>
+                    <button onclick="setLanguage('hi')" id="langHi">हिन्दी</button>
+                    <button onclick="setLanguage('en')" id="langEn">English</button>
+                </div>
+            </h1>
+            <label data-lang="en" for="boothSelect">Select Booth:</label>
+            <label data-lang="hi" for="boothSelect">बूथ चुनें:</label>
+            <label data-lang="bn" for="boothSelect">বুথ নির্বাচন করুন:</label>
+            <select id="boothSelect" onchange="loadBoothDetails()">
+                <option value="" data-lang="en">-- Choose a booth --</option>
+                <option value="" data-lang="hi">-- एक बूथ चुनें --</option>
+                <option value="" data-lang="bn">-- একটি বুথ বেছে নিন --</option>
+            </select>
+        </div>
+
+        <div id="boothDetails" style="display: none;">
+            <div class="grid-2">
+                <div class="card">
+                    <h2 data-lang="en">📊 Booth Analysis</h2>
+                    <h2 data-lang="hi">📊 बूथ विश्लेषण</h2>
+                    <h2 data-lang="bn">📊 বুথের বিশ্লেষণ</h2>
+                    <table class="details-table" id="analysisTable"></table>
+                </div>
+                <div class="card">
+                    <h2 data-lang="en">💡 My Strategy</h2>
+                    <h2 data-lang="hi">💡 मेरी रणनीति</h2>
+                    <h2 data-lang="bn">💡 আমার কৌশল</h2>
+                    <p id="strategyText" class="strategy-box"></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 data-lang="en">➕ Add New Worker</h2>
+                <h2 data-lang="hi">➕ नया कार्यकर्ता जोड़ें</h2>
+                <h2 data-lang="bn">➕ নতুন কর্মী যুক্ত করুন</h2>
+                <form id="workerForm" onsubmit="addNewWorker(event)">
+                    <div class="grid-2">
+                        <div>
+                            <label data-lang="en">Name *</label>
+                            <label data-lang="hi">नाम *</label>
+                            <label data-lang="bn">নাম *</label>
+                            <input type="text" id="workerName" required>
+                        </div>
+                        <div>
+                            <label data-lang="en">Phone *</label>
+                            <label data-lang="hi">फोन *</label>
+                            <label data-lang="bn">ফোন নম্বর *</label>
+                            <input type="tel" id="workerPhone" required>
+                        </div>
+                        <div>
+                            <label data-lang="en">WhatsApp (if different)</label>
+                            <label data-lang="hi">व्हाट्सएप (यदि अलग हो)</label>
+                            <label data-lang="bn">হোয়াটসঅ্যাপ (যদি আলাদা)</label>
+                            <input type="tel" id="workerWhatsapp">
+                        </div>
+                        <div>
+                            <label data-lang="en">Role *</label>
+                            <label data-lang="hi">भूमिका *</label>
+                            <label data-lang="bn">দায়িত্ব *</label>
+                            <input type="text" id="workerRole" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label data-lang="en">Notes (optional)</label>
+                        <label data-lang="hi">टिप्पणी (वैकल्पिक)</label>
+                        <label data-lang="bn">মন্তব্য (ঐচ্ছিক)</label>
+                        <textarea id="workerNotes" rows="2"></textarea>
+                    </div>
+                    <button type="submit" data-lang="en">✅ Add Worker</button>
+                    <button type="submit" data-lang="hi">✅ कार्यकर्ता जोड़ें</button>
+                    <button type="submit" data-lang="bn">✅ কর্মী যুক্ত করুন</button>
+                </form>
+                <div id="formMessage"></div>
+            </div>
+
+            <div class="card">
+                <h2 data-lang="en">👥 Workers of this Booth</h2>
+                <h2 data-lang="hi">👥 इस बूथ के कार्यकर्ता</h2>
+                <h2 data-lang="bn">👥 এই বুথের কর্মীবৃন্দ</h2>
+                <div id="workersList" class="worker-list">...</div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
