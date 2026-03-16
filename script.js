@@ -1,55 +1,109 @@
 let currentLanguage = 'bn';
 let boothData = [];
 let workersData = JSON.parse(localStorage.getItem('workers')) || {};
+let opinionsData = JSON.parse(localStorage.getItem('opinions')) || {};
+let myChart = null;
 
 const translations = {
     en: { 
         chooseOption: "-- Choose a booth --", 
-        addButton: "✅ Add Worker", 
+        addWorkerBtn: "✅ Add Worker", 
+        addOpinionBtn: "✅ Add Opinion",
         noWorkers: "No workers added for this booth yet.", 
-        successMsg: "Worker added successfully!", 
+        noOpinions: "No opinions recorded for this booth yet.",
+        successMsg: "Added successfully!", 
+        updateSuccess: "Updated successfully!",
+        deleteSuccess: "Deleted successfully!",
         errorMsg: "Error: ", 
-        required: "Name, phone and role are required", 
+        required: "All required fields must be filled", 
         duplicatePhone: "This phone number is already added for this booth.",
         analysisNotAvailable: "No analysis provided",
-        strategyNotAvailable: "No strategy provided"
+        strategyNotAvailable: "No strategy provided",
+        confirmDelete: "Are you sure you want to delete this item?",
+        advice: {
+            turnoutDrop: "⚠️ Voter turnout dropped by {percent}%. Investigate reasons and take action.",
+            turnoutIncrease: "✅ Voter turnout increased by {percent}%. Keep up the good work!",
+            roadIssue: "🛣️ Road condition issues frequently mentioned. Contact local authorities.",
+            waterIssue: "💧 Water supply problems reported. Prioritize this issue.",
+            workerShortage: "👥 Worker shortage: {ratio} voters per worker. Need {needed} more workers.",
+            negativeSentiment: "😞 Overall sentiment is negative. Address public concerns urgently.",
+            neutralSentiment: "😐 Mixed public opinion. Engage more with voters.",
+            positiveSentiment: "😊 Positive public sentiment. Maintain momentum.",
+            lowBjp: "📉 BJP vote share dropped significantly. Re-evaluate campaign strategy.",
+            highTmc: "📈 TMC gained here. Study their approach.",
+            noOpinions: "No opinions recorded yet. Start collecting feedback."
+        }
     },
     hi: { 
         chooseOption: "-- एक बूथ चुनें --", 
-        addButton: "✅ कार्यकर्ता जोड़ें", 
+        addWorkerBtn: "✅ कार्यकर्ता जोड़ें", 
+        addOpinionBtn: "✅ राय जोड़ें",
         noWorkers: "इस बूथ के लिए अभी कोई कार्यकर्ता नहीं जोड़ा गया।", 
-        successMsg: "कार्यकर्ता सफलतापूर्वक जोड़ा गया!", 
+        noOpinions: "इस बूथ के लिए अभी कोई राय दर्ज नहीं की गई।",
+        successMsg: "सफलतापूर्वक जोड़ा गया!", 
+        updateSuccess: "सफलतापूर्वक अपडेट किया गया!",
+        deleteSuccess: "सफलतापूर्वक हटा दिया गया!",
         errorMsg: "त्रुटि: ", 
-        required: "नाम, फोन और भूमिका आवश्यक है", 
+        required: "सभी आवश्यक फ़ील्ड भरें", 
         duplicatePhone: "यह फोन नंबर पहले से इस बूथ में जोड़ा गया है।",
         analysisNotAvailable: "विश्लेषण नहीं दिया गया",
-        strategyNotAvailable: "रणनीति नहीं दी गई"
+        strategyNotAvailable: "रणनीति नहीं दी गई",
+        confirmDelete: "क्या आप वाकई इसे हटाना चाहते हैं?",
+        advice: {
+            turnoutDrop: "⚠️ मतदान में {percent}% की गिरावट आई है। कारणों की जांच करें और कार्रवाई करें।",
+            turnoutIncrease: "✅ मतदान में {percent}% की वृद्धि हुई है। अच्छा काम जारी रखें।",
+            roadIssue: "🛣️ सड़क की समस्या बार-बार उठ रही है। स्थानीय प्रशासन से संपर्क करें।",
+            waterIssue: "💧 पानी की आपूर्ति की समस्या बताई जा रही है। इस मुद्दे को प्राथमिकता दें।",
+            workerShortage: "👥 कार्यकर्ताओं की कमी: {ratio} मतदाता प्रति कार्यकर्ता। {needed} और कार्यकर्ता चाहिए।",
+            negativeSentiment: "😞 समग्र भावना नकारात्मक है। जनता की चिंताओं का तुरंत समाधान करें।",
+            neutralSentiment: "😐 मिश्रित जनमत। मतदाताओं के साथ अधिक जुड़ें।",
+            positiveSentiment: "😊 सकारात्मक जनमत। गति बनाए रखें।",
+            lowBjp: "📉 भाजपा का वोट शेयर काफी गिरा। रणनीति पर पुनर्विचार करें।",
+            highTmc: "📈 टीएमसी ने यहां बढ़त हासिल की। उनके दृष्टिकोण का अध्ययन करें।",
+            noOpinions: "अभी कोई राय दर्ज नहीं की गई। प्रतिक्रिया एकत्र करना शुरू करें।"
+        }
     },
     bn: { 
         chooseOption: "-- একটি বুথ বেছে নিন --", 
-        addButton: "✅ কর্মী যুক্ত করুন", 
+        addWorkerBtn: "✅ কর্মী যুক্ত করুন", 
+        addOpinionBtn: "✅ মতামত যোগ করুন",
         noWorkers: "এই বুথে এখনও কোনো কর্মী যুক্ত হয়নি।", 
-        successMsg: "কর্মী সফলভাবে যুক্ত হয়েছে!", 
+        noOpinions: "এই বুথে এখনও কোনো মতামত রেকর্ড হয়নি।",
+        successMsg: "সফলভাবে যুক্ত হয়েছে!", 
+        updateSuccess: "সফলভাবে আপডেট হয়েছে!",
+        deleteSuccess: "সফলভাবে মুছে ফেলা হয়েছে!",
         errorMsg: "ত্রুটি: ", 
-        required: "নাম, ফোন ও দায়িত্ব আবশ্যক", 
+        required: "সব আবশ্যক ফিল্ড পূরণ করুন", 
         duplicatePhone: "এই ফোন নম্বরটি ইতিমধ্যে এই বুথে যুক্ত আছে।",
         analysisNotAvailable: "বিশ্লেষণ দেওয়া নেই",
-        strategyNotAvailable: "কৌশল দেওয়া নেই"
+        strategyNotAvailable: "কৌশল দেওয়া নেই",
+        confirmDelete: "আপনি কি নিশ্চিত যে এটি মুছে ফেলতে চান?",
+        advice: {
+            turnoutDrop: "⚠️ ভোট পড়েছে {percent}% কমেছে। কারণ খতিয়ে দেখুন এবং ব্যবস্থা নিন।",
+            turnoutIncrease: "✅ ভোট পড়েছে {percent}% বেড়েছে। ভালো কাজ চালিয়ে যান।",
+            roadIssue: "🛣️ রাস্তার সমস্যা বারবার উঠেছে। স্থানীয় প্রশাসনের সাথে যোগাযোগ করুন।",
+            waterIssue: "💧 পানীয় জলের সমস্যা জানানো হচ্ছে। এই ইস্যুকে প্রাধান্য দিন।",
+            workerShortage: "👥 কর্মী সংকট: প্রতি কর্মীর জন্য {ratio} ভোটার। আরও {needed} জন কর্মী দরকার।",
+            negativeSentiment: "😞 সামগ্রিক মতামত নেতিবাচক। জনগণের উদ্বেগ দ্রুত সমাধান করুন।",
+            neutralSentiment: "😐 মিশ্র জনমত। ভোটারদের সাথে আরও সম্পৃক্ত হোন।",
+            positiveSentiment: "😊 ইতিবাচক জনমত। গতি ধরে রাখুন।",
+            lowBjp: "📉 বিজেপি ভোটশেয়ার উল্লেখযোগ্যভাবে কমেছে। কৌশল পুনর্মূল্যায়ন করুন।",
+            highTmc: "📈 তৃণমূল এখানে লাভ করেছে। তাদের পদ্ধতি অধ্যয়ন করুন।",
+            noOpinions: "এখনও কোনো মতামত রেকর্ড হয়নি। মতামত সংগ্রহ শুরু করুন।"
+        }
     }
 };
 
 function setLanguage(lang) {
     currentLanguage = lang;
     
-    // Update dropdown placeholder
     const select = document.getElementById('boothSelect');
     const defaultOption = select.querySelector('option[value=""]');
     if (defaultOption) defaultOption.textContent = translations[lang].chooseOption;
     
-    // Update add worker button text
-    document.getElementById('addWorkerBtn').textContent = translations[lang].addButton;
+    document.getElementById('addWorkerBtn').textContent = translations[lang].addWorkerBtn;
+    document.getElementById('addOpinionBtn').textContent = translations[lang].addOpinionBtn;
     
-    // Update language visibility
     document.querySelectorAll('[data-lang]').forEach(el => {
         const key = el.getAttribute('data-lang');
         if (key === 'en' || key === 'hi' || key === 'bn') {
@@ -57,7 +111,6 @@ function setLanguage(lang) {
         }
     });
     
-    // Update active class on language buttons
     document.getElementById('langBn').classList.toggle('active', lang === 'bn');
     document.getElementById('langHi').classList.toggle('active', lang === 'hi');
     document.getElementById('langEn').classList.toggle('active', lang === 'en');
@@ -70,6 +123,7 @@ window.onload = function() {
         .then(data => { 
             boothData = data; 
             populateBoothDropdown(); 
+            checkForAlerts();
         })
         .catch(err => console.error('ডেটা লোড করতে সমস্যা:', err));
 };
@@ -101,8 +155,10 @@ function loadBoothDetails() {
     if (booth) {
         currentBoothDetails = booth;
         displayBoothDetails(booth);
+        generateAnalysis(booth, workersData[boothNo] || [], opinionsData[boothNo] || []);
     }
     displayWorkers(workersData[boothNo] || []);
+    displayOpinions(opinionsData[boothNo] || []);
 }
 
 function displayBoothDetails(b) {
@@ -143,12 +199,322 @@ function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
 }
 
-// Close modal when clicking outside
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
     }
 };
+
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+// ================== NLP Functions with compromise.js ==================
+
+function updateKeywordCloud(opinions) {
+    const container = document.getElementById('keywordCloud');
+    if (!opinions || opinions.length === 0) {
+        container.innerHTML = `<p class="text-muted">${translations[currentLanguage].noOpinions}</p>`;
+        return;
+    }
+    
+    // Combine all opinions and notes into one text
+    const allText = opinions.map(o => o.opinion + ' ' + (o.notes || '')).join(' ');
+    
+    // Use compromise to get nouns and adjectives
+    const doc = nlp(allText);
+    const nouns = doc.nouns().out('array'); // extract nouns
+    const adjectives = doc.adjectives().out('array'); // extract adjectives
+    
+    // Combine and count frequencies
+    const words = [...nouns, ...adjectives].map(w => w.toLowerCase());
+    
+    // Remove stopwords (common words in multiple languages)
+    const stopwords = {
+        bn: ['এবং', 'করে', 'থেকে', 'এই', 'যে', 'কি', 'তা', 'জন্য', 'হয়', 'না', 'তে', 'ের', 'র', 'একটি', 'জন্য', 'হতে', 'পারে'],
+        hi: ['और', 'से', 'यह', 'वह', 'की', 'का', 'में', 'को', 'है', 'हैं', 'भी', 'पर', 'एक'],
+        en: ['the', 'and', 'for', 'this', 'that', 'with', 'from', 'have', 'are', 'was', 'were', 'been']
+    };
+    
+    const currentStopwords = stopwords[currentLanguage] || [];
+    const filteredWords = words.filter(w => w.length > 1 && !currentStopwords.includes(w));
+    
+    // Count frequency
+    const freq = {};
+    filteredWords.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+    
+    const sorted = Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 20);
+    const maxFreq = sorted[0]?.[1] || 1;
+    
+    let html = '';
+    sorted.forEach(([word, count]) => {
+        const size = count / maxFreq;
+        let className = 'keyword-tag';
+        if (size > 0.7) className += ' large';
+        else if (size > 0.4) className += ' medium';
+        else className += ' small';
+        html += `<span class="${className}">${word}</span>`;
+    });
+    
+    container.innerHTML = html;
+}
+
+function updateSentimentMeter(opinions) {
+    const container = document.getElementById('sentimentMeter');
+    if (!opinions || opinions.length === 0) {
+        container.innerHTML = `<p class="text-muted">${translations[currentLanguage].noOpinions}</p>`;
+        return;
+    }
+    
+    // Define sentiment word lists for each language
+    const sentimentWords = {
+        bn: {
+            positive: ['ভাল', 'সন্তুষ্ট', 'ধন্যবাদ', 'উন্নতি', 'সহযোগিতা', 'চমৎকার', 'দারুণ', 'ঠিক', 'সুন্দর'],
+            negative: ['খারাপ', 'সমস্যা', 'অভিযোগ', 'দুর্নীতি', 'ব্যর্থ', 'ক্ষতি', 'বিরক্ত', 'দুঃখ', 'হতাশ']
+        },
+        hi: {
+            positive: ['अच्छा', 'संतुष्ट', 'धन्यवाद', 'सुधार', 'सहयोग', 'बढ़िया', 'उम्दा'],
+            negative: ['बुरा', 'समस्या', 'शिकायत', 'भ्रष्टाचार', 'असफल', 'नुकसान', 'निराश']
+        },
+        en: {
+            positive: ['good', 'satisfied', 'thanks', 'improvement', 'cooperation', 'excellent', 'great', 'fine', 'beautiful'],
+            negative: ['bad', 'problem', 'complaint', 'corruption', 'failed', 'damage', 'annoyed', 'sad', 'disappointed']
+        }
+    };
+    
+    const currentSentiment = sentimentWords[currentLanguage] || sentimentWords.en;
+    
+    // Use compromise to get sentences and analyze sentiment
+    let totalScore = 0;
+    let sentenceCount = 0;
+    
+    opinions.forEach(o => {
+        const text = o.opinion + ' ' + (o.notes || '');
+        // Split into sentences
+        const sentences = nlp(text).sentences().out('array');
+        
+        sentences.forEach(sentence => {
+            let score = 0;
+            const words = nlp(sentence).terms().out('array').map(w => w.toLowerCase());
+            
+            // Check each word against sentiment lists
+            words.forEach(word => {
+                if (currentSentiment.positive.includes(word)) score++;
+                if (currentSentiment.negative.includes(word)) score--;
+            });
+            
+            totalScore += score;
+            sentenceCount++;
+        });
+    });
+    
+    // Normalize score to 0-100 (50 = neutral)
+    // Assuming max possible score per sentence = 3 (just an estimate)
+    const maxPossible = sentenceCount * 3;
+    const minPossible = -maxPossible;
+    const normalized = 50 + (totalScore / (maxPossible / 50)); // scale to 0-100
+    
+    // Clamp between 0 and 100
+    const finalScore = Math.min(100, Math.max(0, normalized));
+    
+    container.innerHTML = `
+        <div class="sentiment-meter">
+            <div class="sentiment-indicator" style="left: ${finalScore}%;"></div>
+        </div>
+        <div class="sentiment-labels">
+            <span>😞 Negative</span>
+            <span>😐 Neutral</span>
+            <span>😊 Positive</span>
+        </div>
+    `;
+}
+
+// ================== Analysis Engine ==================
+
+function generateAnalysis(booth, workers, opinions) {
+    updateVoteChart(booth);
+    updateKeywordCloud(opinions);
+    updateSentimentMeter(opinions);
+    const advice = generateAdvice(booth, workers, opinions);
+    displayAdvice(advice);
+}
+
+function updateVoteChart(booth) {
+    const ctx = document.getElementById('voteChart').getContext('2d');
+    
+    if (myChart) myChart.destroy();
+    
+    myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['2021', '2024'],
+            datasets: [
+                {
+                    label: 'BJP',
+                    data: [booth.BJP2021, booth.BJP2024],
+                    backgroundColor: '#ff6b6b',
+                },
+                {
+                    label: 'TMC',
+                    data: [booth.TMC2021, booth.TMC2024],
+                    backgroundColor: '#4ecdc4',
+                },
+                {
+                    label: 'Others',
+                    data: [booth.Other2021, booth.Other2024],
+                    backgroundColor: '#95a5a6',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, max: 100 } },
+            plugins: { legend: { position: 'top' } }
+        }
+    });
+}
+
+function generateAdvice(booth, workers, opinions) {
+    const advice = [];
+    const t = translations[currentLanguage].advice;
+    
+    // Turnout change
+    const turnoutDiff = booth.Poll2024 - booth.Poll2021;
+    if (turnoutDiff < -5) {
+        advice.push({ type: 'danger', text: t.turnoutDrop.replace('{percent}', Math.abs(turnoutDiff).toFixed(1)) });
+    } else if (turnoutDiff > 5) {
+        advice.push({ type: 'success', text: t.turnoutIncrease.replace('{percent}', turnoutDiff.toFixed(1)) });
+    }
+    
+    // Opinion keywords (using previously extracted)
+    if (opinions.length > 0) {
+        const allText = opinions.map(o => o.opinion + ' ' + (o.notes || '')).join(' ').toLowerCase();
+        if (allText.includes('রাস্তা') || allText.includes('সড়ক') || allText.includes('road')) {
+            advice.push({ type: 'warning', text: t.roadIssue });
+        }
+        if (allText.includes('পানি') || allText.includes('জল') || allText.includes('water')) {
+            advice.push({ type: 'warning', text: t.waterIssue });
+        }
+    } else {
+        advice.push({ type: 'info', text: t.noOpinions });
+    }
+    
+    // Worker adequacy
+    const voterPerWorker = booth.TotalElectors / (workers.length || 1);
+    if (voterPerWorker > 500) {
+        const needed = Math.ceil(workers.length ? (voterPerWorker - 300) / 300 : 3);
+        advice.push({ type: 'warning', text: t.workerShortage.replace('{ratio}', Math.round(voterPerWorker)).replace('{needed}', needed) });
+    }
+    
+    // Party performance
+    const bjpDiff = booth.BJP2024 - booth.BJP2021;
+    if (bjpDiff < -10) {
+        advice.push({ type: 'danger', text: t.lowBjp });
+    }
+    const tmcDiff = booth.TMC2024 - booth.TMC2021;
+    if (tmcDiff > 10) {
+        advice.push({ type: 'warning', text: t.highTmc });
+    }
+    
+    // Overall sentiment (rough estimate)
+    if (opinions.length > 0) {
+        const allText = opinions.map(o => o.opinion).join(' ').toLowerCase();
+        const posCount = (allText.match(/ভাল|সন্তুষ্ট|ধন্যবাদ|good|satisfied|thanks/gi) || []).length;
+        const negCount = (allText.match(/খারাপ|সমস্যা|অভিযোগ|bad|problem|complaint/gi) || []).length;
+        if (negCount > posCount + 2) {
+            advice.push({ type: 'danger', text: t.negativeSentiment });
+        } else if (posCount > negCount + 2) {
+            advice.push({ type: 'success', text: t.positiveSentiment });
+        } else {
+            advice.push({ type: 'info', text: t.neutralSentiment });
+        }
+    }
+    
+    return advice;
+}
+
+function displayAdvice(adviceList) {
+    const container = document.getElementById('adviceList');
+    if (adviceList.length === 0) {
+        container.innerHTML = `<p class="text-muted">${currentLanguage==='bn'?'কোনো পরামর্শ নেই':currentLanguage==='hi'?'कोई सलाह नहीं':'No advice'}</p>`;
+        return;
+    }
+    
+    let html = '';
+    adviceList.forEach(item => {
+        html += `<div class="advice-item ${item.type}"><i class="fas fa-${item.type==='danger'?'exclamation-circle':item.type==='warning'?'exclamation-triangle':item.type==='success'?'check-circle':'info-circle'}"></i> ${item.text}</div>`;
+    });
+    container.innerHTML = html;
+}
+
+// ================== Export Function ==================
+
+function exportBoothReport() {
+    if (!currentBoothDetails) return;
+    
+    const booth = currentBoothDetails;
+    const workers = workersData[currentBooth] || [];
+    const opinions = opinionsData[currentBooth] || [];
+    
+    let csv = "Field,Value\n";
+    csv += `BoothNo,${booth.BoothNo}\n`;
+    csv += `BoothName,${booth.BoothName}\n`;
+    csv += `Segment,${booth.Segment}\n`;
+    csv += `MuslimPercent,${booth.MuslimPercent}\n`;
+    csv += `TotalElectors,${booth.TotalElectors}\n`;
+    csv += `Poll2021,${booth.Poll2021}\n`;
+    csv += `Poll2024,${booth.Poll2024}\n`;
+    csv += `BJP2021,${booth.BJP2021}\n`;
+    csv += `BJP2024,${booth.BJP2024}\n`;
+    csv += `TMC2021,${booth.TMC2021}\n`;
+    csv += `TMC2024,${booth.TMC2024}\n`;
+    csv += `Other2021,${booth.Other2021}\n`;
+    csv += `Other2024,${booth.Other2024}\n\n`;
+    
+    csv += "Workers\n";
+    csv += "Name,Phone,WhatsApp,Role,Notes,AddedDate\n";
+    workers.forEach(w => {
+        csv += `"${w.name}",${w.phone},${w.whatsapp},"${w.role}","${w.notes || ''}",${w.addedDate}\n`;
+    });
+    
+    csv += "\nOpinions\n";
+    csv += "PersonName,Phone,Opinion,Notes,AddedDate\n";
+    opinions.forEach(o => {
+        csv += `"${o.personName}",${o.phone},"${o.opinion}","${o.notes || ''}",${o.addedDate}\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `booth_${booth.BoothNo}_report.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ================== Alert System ==================
+
+function checkForAlerts() {
+    boothData.forEach(booth => {
+        const turnoutDrop = booth.Poll2021 - booth.Poll2024;
+        if (turnoutDrop > 10) {
+            showNotification(`⚠️ Booth ${booth.BoothNo}: ${booth.BoothName} - turnout dropped by ${turnoutDrop.toFixed(1)}%`);
+        }
+    });
+}
+
+function showNotification(message) {
+    const notif = document.createElement('div');
+    notif.className = 'notification-badge';
+    notif.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
+    notif.onclick = () => notif.remove();
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 5000);
+}
+
+// ================== Worker Functions ==================
 
 function displayWorkers(workers) {
     const container = document.getElementById('workersList');
@@ -157,17 +523,24 @@ function displayWorkers(workers) {
         return; 
     }
     let html = '';
-    workers.forEach(w => {
+    workers.forEach((w, index) => {
         html += `
-            <div class="worker-item">
-                <div class="worker-info">
-                    <strong>${w.name}</strong><br>
-                    📞 ${w.phone} | 🎯 ${w.role}<br>
-                    <small>${currentLanguage==='bn'?'যুক্ত':currentLanguage==='hi'?'जोड़ा गया':'Added'}: ${new Date(w.addedDate).toLocaleDateString()}</small>
+            <div class="item-card">
+                <div class="item-header">
+                    <div class="item-info">
+                        <strong>${w.name}</strong><br>
+                        📞 ${w.phone} | 🎯 ${w.role}<br>
+                        <small>${currentLanguage==='bn'?'যুক্ত':currentLanguage==='hi'?'जोड़ा गया':'Added'}: ${new Date(w.addedDate).toLocaleDateString()}</small>
+                        ${w.notes ? `<br><small>📝 ${w.notes}</small>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit" onclick="openEditWorkerModal(${index})"><i class="fas fa-edit"></i> ${currentLanguage==='bn'?'সম্পাদনা':currentLanguage==='hi'?'संपादित करें':'Edit'}</button>
+                        <button class="btn-delete" onclick="deleteWorker(${index})"><i class="fas fa-trash"></i> ${currentLanguage==='bn'?'মুছুন':currentLanguage==='hi'?'हटाएं':'Delete'}</button>
+                    </div>
                 </div>
-                <div class="worker-actions">
-                    <a href="tel:${w.phone}" class="btn-call">${currentLanguage==='bn'?'কল':currentLanguage==='hi'?'कॉल':'Call'}</a>
-                    <a href="https://wa.me/${w.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn-wa">${currentLanguage==='bn'?'হোয়াটসঅ্যাপ':currentLanguage==='hi'?'व्हाट्सएप':'WhatsApp'}</a>
+                <div style="margin-top:10px;">
+                    <a href="tel:${w.phone}" class="btn-call"><i class="fas fa-phone"></i> ${currentLanguage==='bn'?'কল':currentLanguage==='hi'?'कॉल':'Call'}</a>
+                    <a href="https://wa.me/${w.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> ${currentLanguage==='bn'?'হোয়াটসঅ্যাপ':currentLanguage==='hi'?'व्हाट्सएप':'WhatsApp'}</a>
                 </div>
             </div>
         `;
@@ -183,7 +556,6 @@ function addNewWorker(event) {
     const phone = document.getElementById('workerPhone').value.trim();
     const whatsapp = document.getElementById('workerWhatsapp').value.trim() || phone;
 
-    // Check for duplicate phone number in the same booth
     const existingWorkers = workersData[currentBooth] || [];
     if (existingWorkers.some(w => w.phone === phone)) {
         formMsg.innerHTML = `<div class="error">${translations[currentLanguage].errorMsg} ${translations[currentLanguage].duplicatePhone}</div>`;
@@ -191,7 +563,6 @@ function addNewWorker(event) {
     }
 
     const workerData = {
-        boothNo: currentBooth,
         name: document.getElementById('workerName').value.trim(),
         phone: phone,
         whatsapp: whatsapp,
@@ -212,4 +583,151 @@ function addNewWorker(event) {
     formMsg.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
     document.getElementById('workerForm').reset();
     displayWorkers(workersData[currentBooth]);
+    generateAnalysis(currentBoothDetails, workersData[currentBooth], opinionsData[currentBooth] || []);
+}
+
+function openEditWorkerModal(index) {
+    const worker = workersData[currentBooth][index];
+    document.getElementById('editWorkerId').value = index;
+    document.getElementById('editWorkerName').value = worker.name;
+    document.getElementById('editWorkerPhone').value = worker.phone;
+    document.getElementById('editWorkerWhatsapp').value = worker.whatsapp || '';
+    document.getElementById('editWorkerRole').value = worker.role;
+    document.getElementById('editWorkerNotes').value = worker.notes || '';
+    document.getElementById('editWorkerModal').style.display = 'block';
+}
+
+function updateWorker(event) {
+    event.preventDefault();
+    const index = document.getElementById('editWorkerId').value;
+    const updatedData = {
+        name: document.getElementById('editWorkerName').value.trim(),
+        phone: document.getElementById('editWorkerPhone').value.trim(),
+        whatsapp: document.getElementById('editWorkerWhatsapp').value.trim() || document.getElementById('editWorkerPhone').value.trim(),
+        role: document.getElementById('editWorkerRole').value.trim(),
+        notes: document.getElementById('editWorkerNotes').value.trim(),
+        addedDate: workersData[currentBooth][index].addedDate
+    };
+
+    workersData[currentBooth][index] = updatedData;
+    localStorage.setItem('workers', JSON.stringify(workersData));
+    
+    closeModal('editWorkerModal');
+    displayWorkers(workersData[currentBooth]);
+    generateAnalysis(currentBoothDetails, workersData[currentBooth], opinionsData[currentBooth] || []);
+    alert(translations[currentLanguage].updateSuccess);
+}
+
+function deleteWorker(index) {
+    if (confirm(translations[currentLanguage].confirmDelete)) {
+        workersData[currentBooth].splice(index, 1);
+        if (workersData[currentBooth].length === 0) {
+            delete workersData[currentBooth];
+        }
+        localStorage.setItem('workers', JSON.stringify(workersData));
+        displayWorkers(workersData[currentBooth] || []);
+        generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth] || []);
+        alert(translations[currentLanguage].deleteSuccess);
+    }
+}
+
+// ================== Opinion Functions ==================
+
+function displayOpinions(opinions) {
+    const container = document.getElementById('opinionsList');
+    if (!opinions || opinions.length === 0) { 
+        container.innerHTML = `<p class="error">${translations[currentLanguage].noOpinions}</p>`; 
+        return; 
+    }
+    let html = '';
+    opinions.forEach((o, index) => {
+        html += `
+            <div class="item-card">
+                <div class="item-header">
+                    <div class="item-info">
+                        <strong>${o.personName}</strong> (📞 ${o.phone})<br>
+                        💬 ${o.opinion}<br>
+                        <small>${currentLanguage==='bn'?'রেকর্ড':currentLanguage==='hi'?'रिकॉर्ड किया गया':'Recorded'}: ${new Date(o.addedDate).toLocaleDateString()}</small>
+                        ${o.notes ? `<br><small>📝 ${o.notes}</small>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit" onclick="openEditOpinionModal(${index})"><i class="fas fa-edit"></i> ${currentLanguage==='bn'?'সম্পাদনা':currentLanguage==='hi'?'संपादित करें':'Edit'}</button>
+                        <button class="btn-delete" onclick="deleteOpinion(${index})"><i class="fas fa-trash"></i> ${currentLanguage==='bn'?'মুছুন':currentLanguage==='hi'?'हटाएं':'Delete'}</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function addNewOpinion(event) {
+    event.preventDefault();
+    const formMsg = document.getElementById('formMessage');
+    formMsg.innerHTML = `<div class="loading">${currentLanguage==='bn'?'যুক্ত হচ্ছে...':currentLanguage==='hi'?'जोड़ा जा रहा है...':'Adding...'}</div>`;
+
+    const opinionData = {
+        personName: document.getElementById('opinionPersonName').value.trim(),
+        phone: document.getElementById('opinionPhone').value.trim(),
+        opinion: document.getElementById('opinionText').value.trim(),
+        notes: document.getElementById('opinionNotes').value.trim(),
+        addedDate: new Date().toISOString()
+    };
+
+    if (!opinionData.personName || !opinionData.phone || !opinionData.opinion) {
+        formMsg.innerHTML = `<div class="error">${translations[currentLanguage].errorMsg} ${translations[currentLanguage].required}</div>`;
+        return;
+    }
+
+    if (!opinionsData[currentBooth]) opinionsData[currentBooth] = [];
+    opinionsData[currentBooth].push(opinionData);
+    localStorage.setItem('opinions', JSON.stringify(opinionsData));
+
+    formMsg.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
+    document.getElementById('opinionForm').reset();
+    displayOpinions(opinionsData[currentBooth]);
+    generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth]);
+}
+
+function openEditOpinionModal(index) {
+    const opinion = opinionsData[currentBooth][index];
+    document.getElementById('editOpinionId').value = index;
+    document.getElementById('editOpinionPersonName').value = opinion.personName;
+    document.getElementById('editOpinionPhone').value = opinion.phone;
+    document.getElementById('editOpinionText').value = opinion.opinion;
+    document.getElementById('editOpinionNotes').value = opinion.notes || '';
+    document.getElementById('editOpinionModal').style.display = 'block';
+}
+
+function updateOpinion(event) {
+    event.preventDefault();
+    const index = document.getElementById('editOpinionId').value;
+    const updatedData = {
+        personName: document.getElementById('editOpinionPersonName').value.trim(),
+        phone: document.getElementById('editOpinionPhone').value.trim(),
+        opinion: document.getElementById('editOpinionText').value.trim(),
+        notes: document.getElementById('editOpinionNotes').value.trim(),
+        addedDate: opinionsData[currentBooth][index].addedDate
+    };
+
+    opinionsData[currentBooth][index] = updatedData;
+    localStorage.setItem('opinions', JSON.stringify(opinionsData));
+    
+    closeModal('editOpinionModal');
+    displayOpinions(opinionsData[currentBooth]);
+    generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth]);
+    alert(translations[currentLanguage].updateSuccess);
+}
+
+function deleteOpinion(index) {
+    if (confirm(translations[currentLanguage].confirmDelete)) {
+        opinionsData[currentBooth].splice(index, 1);
+        if (opinionsData[currentBooth].length === 0) {
+            delete opinionsData[currentBooth];
+        }
+        localStorage.setItem('opinions', JSON.stringify(opinionsData));
+        displayOpinions(opinionsData[currentBooth] || []);
+        generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth] || []);
+        alert(translations[currentLanguage].deleteSuccess);
+    }
 }
