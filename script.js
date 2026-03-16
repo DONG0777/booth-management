@@ -590,4 +590,42 @@ function addNewOpinion(event) {
 }
 
 function openEditOpinionModal(index) {
-    const opinion = opinionsData[currentBooth
+    const opinion = opinionsData[currentBooth][index];
+    document.getElementById('editOpinionId').value = index;
+    document.getElementById('editOpinionPersonName').value = opinion.personName;
+    document.getElementById('editOpinionPhone').value = opinion.phone;
+    document.getElementById('editOpinionText').value = opinion.opinion;
+    document.getElementById('editOpinionNotes').value = opinion.notes || '';
+    document.getElementById('editOpinionModal').style.display = 'block';
+}
+
+function updateOpinion(event) {
+    event.preventDefault();
+    const index = document.getElementById('editOpinionId').value;
+    const updatedData = {
+        personName: document.getElementById('editOpinionPersonName').value.trim(),
+        phone: document.getElementById('editOpinionPhone').value.trim(),
+        opinion: document.getElementById('editOpinionText').value.trim(),
+        notes: document.getElementById('editOpinionNotes').value.trim(),
+        addedDate: opinionsData[currentBooth][index].addedDate
+    };
+
+    opinionsData[currentBooth][index] = updatedData;
+    localStorage.setItem('opinions', JSON.stringify(opinionsData));
+
+    closeModal('editOpinionModal');
+    displayOpinions(opinionsData[currentBooth]);
+    if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth]);
+    alert(translations[currentLanguage].updateSuccess);
+}
+
+function deleteOpinion(index) {
+    if (confirm(translations[currentLanguage].confirmDelete)) {
+        opinionsData[currentBooth].splice(index, 1);
+        if (opinionsData[currentBooth].length === 0) delete opinionsData[currentBooth];
+        localStorage.setItem('opinions', JSON.stringify(opinionsData));
+        displayOpinions(opinionsData[currentBooth] || []);
+        if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth] || []);
+        alert(translations[currentLanguage].deleteSuccess);
+    }
+}
