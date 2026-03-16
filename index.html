@@ -30,18 +30,20 @@
         </div>
 
         <div id="boothDetails" style="display: none;">
-            <div class="grid-2">
-                <div class="card">
-                    <h2 data-lang="en">📊 Booth Analysis</h2>
-                    <h2 data-lang="hi">📊 बूथ विश्लेषण</h2>
-                    <h2 data-lang="bn">📊 বুথের বিশ্লেষণ</h2>
-                    <table class="details-table" id="analysisTable"></table>
-                </div>
-                <div class="card">
-                    <h2 data-lang="en">💡 My Strategy</h2>
-                    <h2 data-lang="hi">💡 मेरी रणनीति</h2>
-                    <h2 data-lang="bn">💡 আমার কৌশল</h2>
-                    <p id="strategyText" class="strategy-box"></p>
+            <div class="card">
+                <h2 data-lang="en">📊 Booth Details</h2>
+                <h2 data-lang="hi">📊 बूथ विवरण</h2>
+                <h2 data-lang="bn">📊 বুথের বিবরণ</h2>
+                <table class="details-table" id="analysisTable"></table>
+                
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="showAnalysisModal()" data-lang="en">🔍 View Analysis</button>
+                    <button class="action-btn" onclick="showAnalysisModal()" data-lang="hi">🔍 विश्लेषण देखें</button>
+                    <button class="action-btn" onclick="showAnalysisModal()" data-lang="bn">🔍 বিশ্লেষণ দেখুন</button>
+                    
+                    <button class="action-btn" onclick="showStrategyModal()" data-lang="en">💡 View Strategy</button>
+                    <button class="action-btn" onclick="showStrategyModal()" data-lang="hi">💡 रणनीति देखें</button>
+                    <button class="action-btn" onclick="showStrategyModal()" data-lang="bn">💡 কৌশল দেখুন</button>
                 </div>
             </div>
 
@@ -97,6 +99,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Modals for Analysis and Strategy -->
+    <div id="analysisModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('analysisModal')">&times;</span>
+            <h2 data-lang="en">📊 Booth Analysis</h2>
+            <h2 data-lang="hi">📊 बूथ विश्लेषण</h2>
+            <h2 data-lang="bn">📊 বুথের বিশ্লেষণ</h2>
+            <p id="modalAnalysisText" class="modal-text"></p>
+        </div>
+    </div>
+
+    <div id="strategyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('strategyModal')">&times;</span>
+            <h2 data-lang="en">💡 My Strategy</h2>
+            <h2 data-lang="hi">💡 मेरी रणनीति</h2>
+            <h2 data-lang="bn">💡 আমার কৌশল</h2>
+            <p id="modalStrategyText" class="modal-text"></p>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
