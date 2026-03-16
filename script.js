@@ -3,34 +3,74 @@ let boothData = [];
 let workersData = JSON.parse(localStorage.getItem('workers')) || {};
 
 const translations = {
-    en: { chooseOption: "-- Choose a booth --", analysisTitle: "📊 Booth Analysis", strategyTitle: "💡 My Strategy", addWorkerTitle: "➕ Add New Worker", nameLabel: "Name *", phoneLabel: "Phone *", whatsappLabel: "WhatsApp (if different)", roleLabel: "Role *", notesLabel: "Notes (optional)", addButton: "✅ Add Worker", workersTitle: "👥 Workers of this Booth", callBtn: "Call", waBtn: "WhatsApp", loading: "Loading workers...", noWorkers: "No workers added for this booth yet.", successMsg: "Worker added successfully!", errorMsg: "Error: ", required: "Name, phone and role are required", duplicatePhone: "This phone number is already added for this booth." },
-    hi: { chooseOption: "-- एक बूथ चुनें --", analysisTitle: "📊 बूथ विश्लेषण", strategyTitle: "💡 मेरी रणनीति", addWorkerTitle: "➕ नया कार्यकर्ता जोड़ें", nameLabel: "नाम *", phoneLabel: "फोन *", whatsappLabel: "व्हाट्सएप (यदि अलग हो)", roleLabel: "भूमिका *", notesLabel: "टिप्पणी (वैकल्पिक)", addButton: "✅ कार्यकर्ता जोड़ें", workersTitle: "👥 इस बूथ के कार्यकर्ता", callBtn: "कॉल", waBtn: "व्हाट्सएप", loading: "कार्यकर्ता लोड हो रहे हैं...", noWorkers: "इस बूथ के लिए अभी कोई कार्यकर्ता नहीं जोड़ा गया।", successMsg: "कार्यकर्ता सफलतापूर्वक जोड़ा गया!", errorMsg: "त्रुटि: ", required: "नाम, फोन और भूमिका आवश्यक है", duplicatePhone: "यह फोन नंबर पहले से इस बूथ में जोड़ा गया है।" },
-    bn: { chooseOption: "-- একটি বুথ বেছে নিন --", analysisTitle: "📊 বুথের বিশ্লেষণ", strategyTitle: "💡 আমার কৌশল", addWorkerTitle: "➕ নতুন কর্মী যুক্ত করুন", nameLabel: "নাম *", phoneLabel: "ফোন নম্বর *", whatsappLabel: "হোয়াটসঅ্যাপ (যদি আলাদা)", roleLabel: "দায়িত্ব *", notesLabel: "মন্তব্য (ঐচ্ছিক)", addButton: "✅ কর্মী যুক্ত করুন", workersTitle: "👥 এই বুথের কর্মীবৃন্দ", callBtn: "কল", waBtn: "হোয়াটসঅ্যাপ", loading: "কর্মীদের তালিকা লোড হচ্ছে...", noWorkers: "এই বুথে এখনও কোনো কর্মী যুক্ত হয়নি।", successMsg: "কর্মী সফলভাবে যুক্ত হয়েছে!", errorMsg: "ত্রুটি: ", required: "নাম, ফোন ও দায়িত্ব আবশ্যক", duplicatePhone: "এই ফোন নম্বরটি ইতিমধ্যে এই বুথে যুক্ত আছে।" }
+    en: { 
+        chooseOption: "-- Choose a booth --", 
+        addButton: "✅ Add Worker", 
+        noWorkers: "No workers added for this booth yet.", 
+        successMsg: "Worker added successfully!", 
+        errorMsg: "Error: ", 
+        required: "Name, phone and role are required", 
+        duplicatePhone: "This phone number is already added for this booth.",
+        analysisNotAvailable: "No analysis provided",
+        strategyNotAvailable: "No strategy provided"
+    },
+    hi: { 
+        chooseOption: "-- एक बूथ चुनें --", 
+        addButton: "✅ कार्यकर्ता जोड़ें", 
+        noWorkers: "इस बूथ के लिए अभी कोई कार्यकर्ता नहीं जोड़ा गया।", 
+        successMsg: "कार्यकर्ता सफलतापूर्वक जोड़ा गया!", 
+        errorMsg: "त्रुटि: ", 
+        required: "नाम, फोन और भूमिका आवश्यक है", 
+        duplicatePhone: "यह फोन नंबर पहले से इस बूथ में जोड़ा गया है।",
+        analysisNotAvailable: "विश्लेषण नहीं दिया गया",
+        strategyNotAvailable: "रणनीति नहीं दी गई"
+    },
+    bn: { 
+        chooseOption: "-- একটি বুথ বেছে নিন --", 
+        addButton: "✅ কর্মী যুক্ত করুন", 
+        noWorkers: "এই বুথে এখনও কোনো কর্মী যুক্ত হয়নি।", 
+        successMsg: "কর্মী সফলভাবে যুক্ত হয়েছে!", 
+        errorMsg: "ত্রুটি: ", 
+        required: "নাম, ফোন ও দায়িত্ব আবশ্যক", 
+        duplicatePhone: "এই ফোন নম্বরটি ইতিমধ্যে এই বুথে যুক্ত আছে।",
+        analysisNotAvailable: "বিশ্লেষণ দেওয়া নেই",
+        strategyNotAvailable: "কৌশল দেওয়া নেই"
+    }
 };
 
 function setLanguage(lang) {
     currentLanguage = lang;
+    
+    // Update dropdown placeholder
+    const select = document.getElementById('boothSelect');
+    const defaultOption = select.querySelector('option[value=""]');
+    if (defaultOption) defaultOption.textContent = translations[lang].chooseOption;
+    
+    // Update add worker button text
+    document.getElementById('addWorkerBtn').textContent = translations[lang].addButton;
+    
+    // Update language visibility
     document.querySelectorAll('[data-lang]').forEach(el => {
-        if (el.tagName === 'OPTION' && el.value === '') {
-            el.textContent = translations[lang].chooseOption;
-        } else {
-            const key = el.getAttribute('data-lang');
-            if (key === 'en' || key === 'hi' || key === 'bn') {
-                el.style.display = (key === lang) ? 'inline' : 'none';
-            }
+        const key = el.getAttribute('data-lang');
+        if (key === 'en' || key === 'hi' || key === 'bn') {
+            el.style.display = (key === lang) ? 'inline' : 'none';
         }
     });
+    
+    // Update active class on language buttons
     document.getElementById('langBn').classList.toggle('active', lang === 'bn');
     document.getElementById('langHi').classList.toggle('active', lang === 'hi');
     document.getElementById('langEn').classList.toggle('active', lang === 'en');
-    document.querySelectorAll('button[type="submit"]').forEach(btn => btn.textContent = translations[lang].addButton);
 }
 
 window.onload = function() {
     setLanguage('bn');
     fetch('data/boothData.json')
         .then(res => res.json())
-        .then(data => { boothData = data; populateBoothDropdown(); })
+        .then(data => { 
+            boothData = data; 
+            populateBoothDropdown(); 
+        })
         .catch(err => console.error('ডেটা লোড করতে সমস্যা:', err));
 };
 
@@ -50,9 +90,13 @@ let currentBoothDetails = null;
 
 function loadBoothDetails() {
     const boothNo = document.getElementById('boothSelect').value;
-    if (!boothNo) { document.getElementById('boothDetails').style.display = 'none'; return; }
+    if (!boothNo) { 
+        document.getElementById('boothDetails').style.display = 'none'; 
+        return; 
+    }
     currentBooth = boothNo;
     document.getElementById('boothDetails').style.display = 'block';
+    
     const booth = boothData.find(b => b.BoothNo == boothNo);
     if (booth) {
         currentBoothDetails = booth;
@@ -83,13 +127,15 @@ function displayBoothDetails(b) {
 // Modal functions
 function showAnalysisModal() {
     if (!currentBoothDetails) return;
-    document.getElementById('modalAnalysisText').innerText = currentBoothDetails.MyAnalysis || (currentLanguage==='bn'?'বিশ্লেষণ দেওয়া নেই':currentLanguage==='hi'?'विश्लेषण नहीं दिया गया':'No analysis provided');
+    const text = currentBoothDetails.MyAnalysis || translations[currentLanguage].analysisNotAvailable;
+    document.getElementById('modalAnalysisText').innerText = text;
     document.getElementById('analysisModal').style.display = 'block';
 }
 
 function showStrategyModal() {
     if (!currentBoothDetails) return;
-    document.getElementById('modalStrategyText').innerText = currentBoothDetails.MyStrategy || (currentLanguage==='bn'?'কৌশল দেওয়া নেই':currentLanguage==='hi'?'रणनीति नहीं दी गई':'No strategy provided');
+    const text = currentBoothDetails.MyStrategy || translations[currentLanguage].strategyNotAvailable;
+    document.getElementById('modalStrategyText').innerText = text;
     document.getElementById('strategyModal').style.display = 'block';
 }
 
@@ -106,7 +152,10 @@ window.onclick = function(event) {
 
 function displayWorkers(workers) {
     const container = document.getElementById('workersList');
-    if (!workers || workers.length === 0) { container.innerHTML = `<p class="error">${translations[currentLanguage].noWorkers}</p>`; return; }
+    if (!workers || workers.length === 0) { 
+        container.innerHTML = `<p class="error">${translations[currentLanguage].noWorkers}</p>`; 
+        return; 
+    }
     let html = '';
     workers.forEach(w => {
         html += `
@@ -117,8 +166,8 @@ function displayWorkers(workers) {
                     <small>${currentLanguage==='bn'?'যুক্ত':currentLanguage==='hi'?'जोड़ा गया':'Added'}: ${new Date(w.addedDate).toLocaleDateString()}</small>
                 </div>
                 <div class="worker-actions">
-                    <a href="tel:${w.phone}" class="btn-call">${translations[currentLanguage].callBtn}</a>
-                    <a href="https://wa.me/${w.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn-wa">${translations[currentLanguage].waBtn}</a>
+                    <a href="tel:${w.phone}" class="btn-call">${currentLanguage==='bn'?'কল':currentLanguage==='hi'?'कॉल':'Call'}</a>
+                    <a href="https://wa.me/${w.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn-wa">${currentLanguage==='bn'?'হোয়াটসঅ্যাপ':currentLanguage==='hi'?'व्हाट्सएप':'WhatsApp'}</a>
                 </div>
             </div>
         `;
@@ -129,7 +178,7 @@ function displayWorkers(workers) {
 function addNewWorker(event) {
     event.preventDefault();
     const formMsg = document.getElementById('formMessage');
-    formMsg.innerHTML = `<div class="loading">${translations[currentLanguage].loading}</div>`;
+    formMsg.innerHTML = `<div class="loading">${currentLanguage==='bn'?'যুক্ত হচ্ছে...':currentLanguage==='hi'?'जोड़ा जा रहा है...':'Adding...'}</div>`;
 
     const phone = document.getElementById('workerPhone').value.trim();
     const whatsapp = document.getElementById('workerWhatsapp').value.trim() || phone;
