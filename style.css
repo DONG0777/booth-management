@@ -27,4 +27,15 @@ button:hover { background: #2a5298; }
 .lang-switch button { padding: 8px 12px; background: #6c757d; font-size: 14px; border: none; border-radius: 4px; }
 .lang-switch button.active { background: #1e3c72; font-weight: bold; }
 [data-lang] { transition: opacity 0.2s; }
-.strategy-box { white-space: pre-line; background: #f9f9f9; padding: 15px; border-radius: 5px; }
+
+/* Action buttons */
+.action-buttons { display: flex; gap: 10px; margin-top: 20px; }
+.action-btn { flex: 1; background: #17a2b8; }
+.action-btn:hover { background: #138496; }
+
+/* Modal styles */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+.modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 10px; position: relative; }
+.close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+.close:hover { color: black; }
+.modal-text { white-space: pre-line; line-height: 1.6; font-size: 16px; }
