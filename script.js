@@ -1,3 +1,4 @@
+// ================== Language & Translations ==================
 let currentLanguage = 'bn';
 let boothData = [];
 let workersData = JSON.parse(localStorage.getItem('workers')) || {};
@@ -100,9 +101,6 @@ function setLanguage(lang) {
     const defaultOption = select.querySelector('option[value=""]');
     if (defaultOption) defaultOption.textContent = translations[lang].chooseOption;
     
-    document.getElementById('addWorkerBtn').textContent = translations[lang].addWorkerBtn;
-    document.getElementById('addOpinionBtn').textContent = translations[lang].addOpinionBtn;
-    
     document.querySelectorAll('[data-lang]').forEach(el => {
         const key = el.getAttribute('data-lang');
         if (key === 'en' || key === 'hi' || key === 'bn') {
@@ -115,6 +113,7 @@ function setLanguage(lang) {
     document.getElementById('langEn').classList.toggle('active', lang === 'en');
 }
 
+// ================== Load Data ==================
 window.onload = function() {
     setLanguage('bn');
     fetch('data/boothData.json')
@@ -124,12 +123,16 @@ window.onload = function() {
             populateBoothDropdown(); 
             checkForAlerts();
         })
-        .catch(err => console.error('ডেটা লোড করতে সমস্যা:', err));
+        .catch(err => {
+            console.error('ডেটা লোড করতে সমস্যা:', err);
+            alert('ডেটা লোড করতে সমস্যা হয়েছে। কনসোল চেক করুন।');
+        });
 };
 
 function populateBoothDropdown() {
     const select = document.getElementById('boothSelect');
     select.innerHTML = `<option value="">${translations[currentLanguage].chooseOption}</option>`;
+    if (!boothData || boothData.length === 0) return;
     boothData.sort((a,b) => a.BoothNo - b.BoothNo).forEach(b => {
         const option = document.createElement('option');
         option.value = b.BoothNo;
@@ -179,6 +182,7 @@ function displayBoothDetails(b) {
     `;
 }
 
+// ================== Modal Functions ==================
 function showAnalysisModal() {
     if (!currentBoothDetails) return;
     const text = currentBoothDetails.MyAnalysis || translations[currentLanguage].analysisNotAvailable;
@@ -203,11 +207,12 @@ window.onclick = function(event) {
     }
 };
 
+// ================== Section Toggle ==================
 function toggleSection(sectionId) {
     const section = document.getElementById(sectionId);
     const chevron = document.getElementById(sectionId === 'workerSection' ? 'workerChevron' : 'opinionChevron');
-    if (section.style.maxHeight) {
-        section.style.maxHeight = null;
+    if (section.style.maxHeight && section.style.maxHeight !== '0px') {
+        section.style.maxHeight = '0';
         chevron.classList.remove('fa-chevron-up');
         chevron.classList.add('fa-chevron-down');
     } else {
@@ -222,7 +227,7 @@ function toggleForm(formId) {
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
-// ========== Smart Analysis Functions ==========
+// ================== Analysis Engine ==================
 function generateAnalysis(booth, workers, opinions) {
     updateVoteChart(booth);
     updateKeywordCloud(opinions);
@@ -238,16 +243,16 @@ function updateVoteChart(booth) {
         data: {
             labels: ['2021', '2024'],
             datasets: [
-                { label: 'BJP', data: [booth.BJP2021, booth.BJP2024], backgroundColor: '#ff6b6b' },
-                { label: 'TMC', data: [booth.TMC2021, booth.TMC2024], backgroundColor: '#4ecdc4' },
-                { label: 'Others', data: [booth.Other2021, booth.Other2024], backgroundColor: '#95a5a6' }
+                { label: 'BJP', data: [booth.BJP2021, booth.BJP2024], backgroundColor: '#ff6b6b', borderRadius: 6 },
+                { label: 'TMC', data: [booth.TMC2021, booth.TMC2024], backgroundColor: '#4ecdc4', borderRadius: 6 },
+                { label: 'Others', data: [booth.Other2021, booth.Other2024], backgroundColor: '#95a5a6', borderRadius: 6 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, max: 100 } },
-            plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } }
+            scales: { y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } } },
+            plugins: { legend: { position: 'top', labels: { boxWidth: 12, usePointStyle: true } } }
         }
     });
 }
@@ -265,7 +270,7 @@ function updateKeywordCloud(opinions) {
     const adjectives = doc.adjectives().out('array');
     const words = [...nouns, ...adjectives].map(w => w.toLowerCase());
     
-    const stopwords = { bn: ['এবং', 'করে', 'থেকে', 'এই', 'যে', 'কি', 'তা'], hi: ['और', 'से', 'यह', 'वह', 'की'], en: ['the', 'and', 'for', 'this'] };
+    const stopwords = { bn: ['এবং', 'করে', 'থেকে', 'এই', 'যে', 'কি', 'তা', 'জন্য', 'হয়', 'না', 'তে', 'ের'], hi: ['और', 'से', 'यह', 'वह', 'की', 'का', 'में'], en: ['the', 'and', 'for', 'this', 'that', 'with'] };
     const currentStopwords = stopwords[currentLanguage] || [];
     const filtered = words.filter(w => w.length > 1 && !currentStopwords.includes(w));
     
@@ -292,9 +297,9 @@ function updateSentimentMeter(opinions) {
     }
     
     const sentimentWords = {
-        bn: { positive: ['ভাল', 'সন্তুষ্ট', 'ধন্যবাদ', 'উন্নতি', 'সহযোগিতা'], negative: ['খারাপ', 'সমস্যা', 'অভিযোগ', 'দুর্নীতি', 'ব্যর্থ'] },
-        hi: { positive: ['अच्छा', 'संतुष्ट', 'धन्यवाद', 'सुधार'], negative: ['बुरा', 'समस्या', 'शिकायत', 'भ्रष्टाचार'] },
-        en: { positive: ['good', 'satisfied', 'thanks', 'improvement'], negative: ['bad', 'problem', 'complaint', 'corruption'] }
+        bn: { positive: ['ভাল', 'সন্তুষ্ট', 'ধন্যবাদ', 'উন্নতি', 'সহযোগিতা', 'চমৎকার', 'ঠিক'], negative: ['খারাপ', 'সমস্যা', 'অভিযোগ', 'দুর্নীতি', 'ব্যর্থ', 'ক্ষতি', 'বিরক্ত'] },
+        hi: { positive: ['अच्छा', 'संतुष्ट', 'धन्यवाद', 'सुधार', 'बढ़िया'], negative: ['बुरा', 'समस्या', 'शिकायत', 'भ्रष्टाचार', 'असफल'] },
+        en: { positive: ['good', 'satisfied', 'thanks', 'improvement', 'excellent', 'great'], negative: ['bad', 'problem', 'complaint', 'corruption', 'failed', 'damage'] }
     };
     const words = sentimentWords[currentLanguage] || sentimentWords.en;
     
@@ -315,27 +320,30 @@ function generateAdvice(booth, workers, opinions) {
     const advice = [];
     const t = translations[currentLanguage].advice;
     
+    // Turnout change
     const turnoutDiff = booth.Poll2024 - booth.Poll2021;
     if (turnoutDiff < -5) advice.push({ type: 'danger', text: t.turnoutDrop.replace('{percent}', Math.abs(turnoutDiff).toFixed(1)) });
     else if (turnoutDiff > 5) advice.push({ type: 'success', text: t.turnoutIncrease.replace('{percent}', turnoutDiff.toFixed(1)) });
     
+    // Opinion keywords
     if (opinions.length > 0) {
-        const all = opinions.map(o => o.opinion).join(' ').toLowerCase();
-        if (all.includes('রাস্তা') || all.includes('সড়ক') || all.includes('road')) advice.push({ type: 'warning', text: t.roadIssue });
-        if (all.includes('পানি') || all.includes('জল') || all.includes('water')) advice.push({ type: 'warning', text: t.waterIssue });
+        const allText = opinions.map(o => o.opinion).join(' ').toLowerCase();
+        if (allText.includes('রাস্তা') || allText.includes('সড়ক') || allText.includes('road')) advice.push({ type: 'warning', text: t.roadIssue });
+        if (allText.includes('পানি') || allText.includes('জল') || allText.includes('water')) advice.push({ type: 'warning', text: t.waterIssue });
     } else {
         advice.push({ type: 'info', text: t.noOpinions });
     }
     
+    // Worker adequacy
     const voterPerWorker = booth.TotalElectors / (workers.length || 1);
     if (voterPerWorker > 500) {
         const needed = Math.ceil(workers.length ? (voterPerWorker - 300) / 300 : 3);
         advice.push({ type: 'warning', text: t.workerShortage.replace('{ratio}', Math.round(voterPerWorker)).replace('{needed}', needed) });
     }
     
+    // Party performance
     const bjpDiff = booth.BJP2024 - booth.BJP2021;
     if (bjpDiff < -10) advice.push({ type: 'danger', text: t.lowBjp });
-    
     const tmcDiff = booth.TMC2024 - booth.TMC2021;
     if (tmcDiff > 10) advice.push({ type: 'warning', text: t.highTmc });
     
@@ -353,6 +361,7 @@ function displayAdvice(adviceList) {
     ).join('');
 }
 
+// ================== Export Report ==================
 function exportBoothReport() {
     if (!currentBoothDetails) return;
     const booth = currentBoothDetails;
@@ -375,11 +384,11 @@ function exportBoothReport() {
     URL.revokeObjectURL(url);
 }
 
+// ================== Alert System ==================
 function checkForAlerts() {
     boothData.forEach(booth => {
-        if (booth.Poll2021 - booth.Poll2024 > 10) {
-            showNotification(`⚠️ Booth ${booth.BoothNo}: turnout dropped by ${(booth.Poll2021 - booth.Poll2024).toFixed(1)}%`);
-        }
+        const drop = booth.Poll2021 - booth.Poll2024;
+        if (drop > 10) showNotification(`⚠️ Booth ${booth.BoothNo}: turnout dropped by ${drop.toFixed(1)}%`);
     });
 }
 
@@ -392,16 +401,216 @@ function showNotification(message) {
     setTimeout(() => notif.remove(), 5000);
 }
 
-// ========== Worker Functions (shortened for brevity – keep your existing worker functions here) ==========
-function displayWorkers(workers) { /* your existing code */ }
-function addNewWorker(event) { /* your existing code */ }
-function openEditWorkerModal(index) { /* your existing code */ }
-function updateWorker(event) { /* your existing code */ }
-function deleteWorker(index) { /* your existing code */ }
+// ================== Worker Functions ==================
+function displayWorkers(workers) {
+    const container = document.getElementById('workersList');
+    if (!workers || workers.length === 0) { 
+        container.innerHTML = `<p class="text-muted">${translations[currentLanguage].noWorkers}</p>`; 
+        return; 
+    }
+    let html = '';
+    workers.forEach((w, index) => {
+        html += `
+            <div class="item-card">
+                <div class="item-header">
+                    <div class="item-info">
+                        <strong>${w.name}</strong><br>
+                        📞 ${w.phone} | 🎯 ${w.role}<br>
+                        <small>${currentLanguage==='bn'?'যুক্ত':currentLanguage==='hi'?'जोड़ा गया':'Added'}: ${new Date(w.addedDate).toLocaleDateString()}</small>
+                        ${w.notes ? `<br><small>📝 ${w.notes}</small>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit" onclick="openEditWorkerModal(${index})"><i class="fas fa-edit"></i> ${currentLanguage==='bn'?'সম্পাদনা':currentLanguage==='hi'?'संपादित करें':'Edit'}</button>
+                        <button class="btn-delete" onclick="deleteWorker(${index})"><i class="fas fa-trash"></i> ${currentLanguage==='bn'?'মুছুন':currentLanguage==='hi'?'हटाएं':'Delete'}</button>
+                    </div>
+                </div>
+                <div style="margin-top:12px;">
+                    <a href="tel:${w.phone}" class="btn-call"><i class="fas fa-phone"></i> ${currentLanguage==='bn'?'কল':currentLanguage==='hi'?'कॉल':'Call'}</a>
+                    <a href="https://wa.me/${w.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> ${currentLanguage==='bn'?'হোয়াটসঅ্যাপ':currentLanguage==='hi'?'व्हाट्सएप':'WhatsApp'}</a>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
 
-// ========== Opinion Functions ==========
-function displayOpinions(opinions) { /* your existing code */ }
-function addNewOpinion(event) { /* your existing code */ }
-function openEditOpinionModal(index) { /* your existing code */ }
-function updateOpinion(event) { /* your existing code */ }
-function deleteOpinion(index) { /* your existing code */ }
+function addNewWorker(event) {
+    event.preventDefault();
+    const formMsg = document.getElementById('formMessage');
+    if (!formMsg) return;
+    formMsg.innerHTML = `<div class="loading">${currentLanguage==='bn'?'যুক্ত হচ্ছে...':currentLanguage==='hi'?'जोड़ा जा रहा है...':'Adding...'}</div>`;
+
+    const phone = document.getElementById('workerPhone').value.trim();
+    const whatsapp = document.getElementById('workerWhatsapp').value.trim() || phone;
+
+    const existingWorkers = workersData[currentBooth] || [];
+    if (existingWorkers.some(w => w.phone === phone)) {
+        formMsg.innerHTML = `<div class="error">${translations[currentLanguage].errorMsg} ${translations[currentLanguage].duplicatePhone}</div>`;
+        return;
+    }
+
+    const workerData = {
+        name: document.getElementById('workerName').value.trim(),
+        phone: phone,
+        whatsapp: whatsapp,
+        role: document.getElementById('workerRole').value.trim(),
+        notes: document.getElementById('workerNotes').value.trim(),
+        addedDate: new Date().toISOString()
+    };
+
+    if (!workerData.name || !workerData.phone || !workerData.role) {
+        formMsg.innerHTML = `<div class="error">${translations[currentLanguage].errorMsg} ${translations[currentLanguage].required}</div>`;
+        return;
+    }
+
+    if (!workersData[currentBooth]) workersData[currentBooth] = [];
+    workersData[currentBooth].push(workerData);
+    localStorage.setItem('workers', JSON.stringify(workersData));
+
+    formMsg.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
+    document.getElementById('workerForm').reset();
+    displayWorkers(workersData[currentBooth]);
+    if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth], opinionsData[currentBooth] || []);
+}
+
+function openEditWorkerModal(index) {
+    const worker = workersData[currentBooth][index];
+    document.getElementById('editWorkerId').value = index;
+    document.getElementById('editWorkerName').value = worker.name;
+    document.getElementById('editWorkerPhone').value = worker.phone;
+    document.getElementById('editWorkerWhatsapp').value = worker.whatsapp || '';
+    document.getElementById('editWorkerRole').value = worker.role;
+    document.getElementById('editWorkerNotes').value = worker.notes || '';
+    document.getElementById('editWorkerModal').style.display = 'block';
+}
+
+function updateWorker(event) {
+    event.preventDefault();
+    const index = document.getElementById('editWorkerId').value;
+    const updatedData = {
+        name: document.getElementById('editWorkerName').value.trim(),
+        phone: document.getElementById('editWorkerPhone').value.trim(),
+        whatsapp: document.getElementById('editWorkerWhatsapp').value.trim() || document.getElementById('editWorkerPhone').value.trim(),
+        role: document.getElementById('editWorkerRole').value.trim(),
+        notes: document.getElementById('editWorkerNotes').value.trim(),
+        addedDate: workersData[currentBooth][index].addedDate
+    };
+
+    workersData[currentBooth][index] = updatedData;
+    localStorage.setItem('workers', JSON.stringify(workersData));
+    
+    closeModal('editWorkerModal');
+    displayWorkers(workersData[currentBooth]);
+    if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth], opinionsData[currentBooth] || []);
+    alert(translations[currentLanguage].updateSuccess);
+}
+
+function deleteWorker(index) {
+    if (confirm(translations[currentLanguage].confirmDelete)) {
+        workersData[currentBooth].splice(index, 1);
+        if (workersData[currentBooth].length === 0) delete workersData[currentBooth];
+        localStorage.setItem('workers', JSON.stringify(workersData));
+        displayWorkers(workersData[currentBooth] || []);
+        if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth] || []);
+        alert(translations[currentLanguage].deleteSuccess);
+    }
+}
+
+// ================== Opinion Functions ==================
+function displayOpinions(opinions) {
+    const container = document.getElementById('opinionsList');
+    if (!opinions || opinions.length === 0) { 
+        container.innerHTML = `<p class="text-muted">${translations[currentLanguage].noOpinions}</p>`; 
+        return; 
+    }
+    let html = '';
+    opinions.forEach((o, index) => {
+        html += `
+            <div class="item-card">
+                <div class="item-header">
+                    <div class="item-info">
+                        <strong>${o.personName}</strong> (📞 ${o.phone})<br>
+                        💬 ${o.opinion}<br>
+                        <small>${currentLanguage==='bn'?'রেকর্ড':currentLanguage==='hi'?'रिकॉर्ड किया गया':'Recorded'}: ${new Date(o.addedDate).toLocaleDateString()}</small>
+                        ${o.notes ? `<br><small>📝 ${o.notes}</small>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit" onclick="openEditOpinionModal(${index})"><i class="fas fa-edit"></i> ${currentLanguage==='bn'?'সম্পাদনা':currentLanguage==='hi'?'संपादित करें':'Edit'}</button>
+                        <button class="btn-delete" onclick="deleteOpinion(${index})"><i class="fas fa-trash"></i> ${currentLanguage==='bn'?'মুছুন':currentLanguage==='hi'?'हटाएं':'Delete'}</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function addNewOpinion(event) {
+    event.preventDefault();
+    const formMsg = document.getElementById('formMessage');
+    if (!formMsg) return;
+    formMsg.innerHTML = `<div class="loading">${currentLanguage==='bn'?'যুক্ত হচ্ছে...':currentLanguage==='hi'?'जोड़ा जा रहा है...':'Adding...'}</div>`;
+
+    const opinionData = {
+        personName: document.getElementById('opinionPersonName').value.trim(),
+        phone: document.getElementById('opinionPhone').value.trim(),
+        opinion: document.getElementById('opinionText').value.trim(),
+        notes: document.getElementById('opinionNotes').value.trim(),
+        addedDate: new Date().toISOString()
+    };
+
+    if (!opinionData.personName || !opinionData.phone || !opinionData.opinion) {
+        formMsg.innerHTML = `<div class="error">${translations[currentLanguage].errorMsg} ${translations[currentLanguage].required}</div>`;
+        return;
+    }
+
+    if (!opinionsData[currentBooth]) opinionsData[currentBooth] = [];
+    opinionsData[currentBooth].push(opinionData);
+    localStorage.setItem('opinions', JSON.stringify(opinionsData));
+
+    formMsg.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
+    document.getElementById('opinionForm').reset();
+    displayOpinions(opinionsData[currentBooth]);
+    if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth]);
+}
+
+function openEditOpinionModal(index) {
+    const opinion = opinionsData[currentBooth][index];
+    document.getElementById('editOpinionId').value = index;
+    document.getElementById('editOpinionPersonName').value = opinion.personName;
+    document.getElementById('editOpinionPhone').value = opinion.phone;
+    document.getElementById('editOpinionText').value = opinion.opinion;
+    document.getElementById('editOpinionNotes').value = opinion.notes || '';
+    document.getElementById('editOpinionModal').style.display = 'block';
+}
+
+function updateOpinion(event) {
+    event.preventDefault();
+    const index = document.getElementById('editOpinionId').value;
+    const updatedData = {
+        personName: document.getElementById('editOpinionPersonName').value.trim(),
+        phone: document.getElementById('editOpinionPhone').value.trim(),
+        opinion: document.getElementById('editOpinionText').value.trim(),
+        notes: document.getElementById('editOpinionNotes').value.trim(),
+        addedDate: opinionsData[currentBooth][index].addedDate
+    };
+
+    opinionsData[currentBooth][index] = updatedData;
+    localStorage.setItem('opinions', JSON.stringify(opinionsData));
+    
+    closeModal('editOpinionModal');
+    displayOpinions(opinionsData[currentBooth]);
+    if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth]);
+    alert(translations[currentLanguage].updateSuccess);
+}
+
+function deleteOpinion(index) {
+    if (confirm(translations[currentLanguage].confirmDelete)) {
+        opinionsData[currentBooth].splice(index, 1);
+        if (opinionsData[currentBooth].length === 0) delete opinionsData[currentBooth];
+        localStorage.setItem('opinions', JSON.stringify(opinionsData));
+        displayOpinions(opinionsData[currentBooth] || []);
+        if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth] || []);
+        alert(translations[currentLanguage].deleteSuccess);
+    }
+}
