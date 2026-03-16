@@ -452,7 +452,7 @@ function displayWorkers(workers) {
 
 function addNewWorker(event) {
     event.preventDefault();
-    const formMsg = document.getElementById('formMessage');
+    const formMsg = document.getElementById('workerFormMessage');
     if (formMsg) formMsg.innerHTML = `<div class="loading">${currentLanguage==='bn'?'যুক্ত হচ্ছে...':currentLanguage==='hi'?'जोड़ा जा रहा है...':'Adding...'}</div>`;
 
     const phone = document.getElementById('workerPhone').value.trim();
@@ -563,7 +563,7 @@ function displayOpinions(opinions) {
 
 function addNewOpinion(event) {
     event.preventDefault();
-    const formMsg = document.getElementById('formMessage');
+    const formMsg = document.getElementById('opinionFormMessage');
     if (formMsg) formMsg.innerHTML = `<div class="loading">${currentLanguage==='bn'?'যুক্ত হচ্ছে...':currentLanguage==='hi'?'जोड़ा जा रहा है...':'Adding...'}</div>`;
 
     const opinionData = {
