@@ -103,6 +103,7 @@ function toggleDarkMode() {
     if (btn) {
         btn.className = document.body.classList.contains('dark-mode') ? 'fas fa-sun' : 'fas fa-moon';
     }
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
 }
 
 // ================== NOTIFICATION ==================
@@ -113,6 +114,40 @@ function showNotification(msg, isError = false) {
     notif.innerHTML = `<i class="fas fa-${isError ? 'exclamation-circle' : 'check-circle'}"></i> ${msg}`;
     document.body.appendChild(notif);
     setTimeout(() => notif.remove(), 3000);
+}
+
+// ================== FORM FUNCTIONS ==================
+function openWorkerForm() {
+    const form = document.getElementById('workerFormContainer');
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeWorkerForm() {
+    const form = document.getElementById('workerFormContainer');
+    form.style.display = 'none';
+    document.getElementById('workerName').value = '';
+    document.getElementById('workerPhone').value = '';
+    document.getElementById('workerWhatsapp').value = '';
+    document.getElementById('workerRole').value = '';
+    document.getElementById('workerNotes').value = '';
+    document.getElementById('workerMsg').innerHTML = '';
+}
+
+function openOpinionForm() {
+    const form = document.getElementById('opinionFormContainer');
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeOpinionForm() {
+    const form = document.getElementById('opinionFormContainer');
+    form.style.display = 'none';
+    document.getElementById('opinionName').value = '';
+    document.getElementById('opinionPhone').value = '';
+    document.getElementById('opinionText').value = '';
+    document.getElementById('opinionNotes').value = '';
+    document.getElementById('opinionMsg').innerHTML = '';
 }
 
 // ================== LOAD BOOTH DATA ==================
@@ -203,7 +238,6 @@ function updateDashboard() {
 function updateRankings() {
     if (!boothData.length) return;
     
-    // Danger booths
     const danger = boothData.filter(b => ((b.BJP2024 || 0) - (b.BJP2021 || 0)) < -10)
         .sort((a,b) => ((a.BJP2021 - a.BJP2024) - (b.BJP2021 - b.BJP2024)));
     
@@ -214,7 +248,6 @@ function updateRankings() {
         </div>
     `).join('') || '<p class="text-muted">কোনো বিপদজনক বুথ নেই</p>';
     
-    // Swing booths
     const swing = boothData.filter(b => {
         const diff = (b.BJP2024 || 0) - (b.BJP2021 || 0);
         return Math.abs(diff) <= 10 && (b.BJP2024 || 0) < 55;
@@ -227,7 +260,6 @@ function updateRankings() {
         </div>
     `).join('') || '<p class="text-muted">কোনো সুইং বুথ নেই</p>';
     
-    // Safe booths
     const safe = boothData.filter(b => {
         const diff = (b.BJP2024 || 0) - (b.BJP2021 || 0);
         return diff > 5 && (b.BJP2024 || 0) > 55;
@@ -269,7 +301,6 @@ function loadBoothDetails() {
     document.getElementById('boothDetails').style.display = 'block';
     document.getElementById('boothTitle').innerHTML = `${currentBoothDetails.BoothNo}. ${currentBoothDetails.BoothName}`;
     
-    // Booth status badge
     const diff = (currentBoothDetails.BJP2024 || 0) - (currentBoothDetails.BJP2021 || 0);
     const statusDiv = document.getElementById('boothStatus');
     if (diff < -10) {
@@ -286,7 +317,6 @@ function loadBoothDetails() {
         statusDiv.className = 'booth-status status-stable';
     }
     
-    // Booth info table
     const table = document.getElementById('boothInfoTable');
     table.innerHTML = `
         <tr><td>সেগমেন্ট</td><td>${currentBoothDetails.Segment}</td></tr>
@@ -302,16 +332,12 @@ function loadBoothDetails() {
         <tr><td>অন্যান্য ২০২৪</td><td>${currentBoothDetails.Other2024}%</td></tr>
     `;
     
-    // Target display
     const target = boothTargets[boothNo];
     document.getElementById('targetDisplay').innerHTML = target ? `🎯 টার্গেট: ${target}% (বর্তমান: ${currentBoothDetails.BJP2024}%)` : '🎯 এখনো টার্গেট সেট করা হয়নি';
     document.getElementById('targetVote').value = target || '';
     
-    // Load workers and opinions
     displayWorkers(workersData[boothNo] || []);
     displayOpinions(opinionsData[boothNo] || []);
-    
-    // Generate analysis
     generateAnalysis();
 }
 
@@ -333,7 +359,6 @@ function setBoothTarget() {
 function generateAnalysis() {
     if (!currentBoothDetails) return;
     
-    // Chart
     const ctx = document.getElementById('voteChart').getContext('2d');
     if (voteChart) voteChart.destroy();
     voteChart = new Chart(ctx, {
@@ -349,7 +374,6 @@ function generateAnalysis() {
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
     });
     
-    // Keyword cloud
     const opinions = opinionsData[currentBooth] || [];
     const cloudDiv = document.getElementById('keywordCloud');
     if (opinions.length === 0) {
@@ -373,7 +397,6 @@ function generateAnalysis() {
         }).join('');
     }
     
-    // Sentiment meter
     const indicator = document.getElementById('sentimentIndicator');
     if (opinions.length === 0) {
         indicator.style.left = '50%';
@@ -390,7 +413,6 @@ function generateAnalysis() {
         indicator.style.left = Math.min(100, Math.max(0, normalized)) + '%';
     }
     
-    // Advice list
     const advice = [];
     const bjpDiff = (currentBoothDetails.BJP2024 || 0) - (currentBoothDetails.BJP2021 || 0);
     const tmcDiff = (currentBoothDetails.TMC2024 || 0) - (currentBoothDetails.TMC2021 || 0);
@@ -481,12 +503,17 @@ function addWorker() {
     workersData[currentBooth].push({ name, phone, whatsapp, role, notes, addedDate: new Date().toISOString() });
     localStorage.setItem('workers', JSON.stringify(workersData));
     
-    document.getElementById('workerForm').reset();
+    document.getElementById('workerName').value = '';
+    document.getElementById('workerPhone').value = '';
+    document.getElementById('workerWhatsapp').value = '';
+    document.getElementById('workerRole').value = '';
+    document.getElementById('workerNotes').value = '';
     msgDiv.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
     setTimeout(() => msgDiv.innerHTML = '', 2000);
     displayWorkers(workersData[currentBooth]);
     generateAnalysis();
     updateDashboard();
+    closeWorkerForm();
 }
 
 function openEditWorker(index) {
@@ -566,12 +593,16 @@ function addOpinion() {
     opinionsData[currentBooth].push({ personName, phone, opinion, notes, addedDate: new Date().toISOString() });
     localStorage.setItem('opinions', JSON.stringify(opinionsData));
     
-    document.getElementById('opinionForm').reset();
+    document.getElementById('opinionName').value = '';
+    document.getElementById('opinionPhone').value = '';
+    document.getElementById('opinionText').value = '';
+    document.getElementById('opinionNotes').value = '';
     msgDiv.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
     setTimeout(() => msgDiv.innerHTML = '', 2000);
     displayOpinions(opinionsData[currentBooth]);
     generateAnalysis();
     updateDashboard();
+    closeOpinionForm();
 }
 
 function openEditOpinion(index) {
@@ -667,11 +698,6 @@ function toggleSection(sectionId) {
         chevron.classList.remove('fa-chevron-down');
         chevron.classList.add('fa-chevron-up');
     }
-}
-
-function toggleForm(formId) {
-    const form = document.getElementById(formId);
-    form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
 function closeModal(modalId) {
