@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <!-- Main Content (hidden initially) -->
+    <!-- Main Content -->
     <div id="mainContent" style="display: none;">
         <div class="container">
             <!-- Header -->
@@ -110,7 +110,7 @@
                         <h2 id="boothTitle"></h2>
                         <div class="booth-status" id="boothStatus"></div>
                     </div>
-                    <table class="details-table" id="boothInfoTable"></table>
+                    <table class="details-table" id="boothInfoTable">\table
                     <div class="target-section">
                         <h4><i class="fas fa-bullseye"></i> টার্গেট সেট করুন</h4>
                         <div class="target-input">
@@ -139,15 +139,15 @@
                     <button class="export-btn" onclick="exportCSVReport()"><i class="fas fa-download"></i> CSV রিপোর্ট</button>
                 </div>
 
-                <!-- Workers -->
+                <!-- Workers Section -->
                 <div class="card">
                     <div class="section-header" onclick="toggleSection('workerSection')">
                         <h2><i class="fas fa-users"></i> কর্মীবৃন্দ</h2>
                         <i class="fas fa-chevron-down" id="workerChevron"></i>
                     </div>
                     <div id="workerSection" class="collapsible" style="max-height: 0; overflow: hidden;">
-                        <button class="add-btn" onclick="toggleForm('workerForm')"><i class="fas fa-plus"></i> কর্মী যোগ করুন</button>
-                        <div id="workerForm" class="form-container" style="display: none;">
+                        <button class="add-btn" onclick="openWorkerForm()"><i class="fas fa-plus"></i> কর্মী যোগ করুন</button>
+                        <div id="workerFormContainer" class="form-container" style="display: none;">
                             <input type="text" id="workerName" placeholder="নাম" required>
                             <input type="tel" id="workerPhone" placeholder="ফোন" required>
                             <input type="tel" id="workerWhatsapp" placeholder="হোয়াটসঅ্যাপ">
@@ -155,26 +155,28 @@
                             <textarea id="workerNotes" placeholder="মন্তব্য" rows="2"></textarea>
                             <div id="workerMsg" class="form-message"></div>
                             <button onclick="addWorker()" class="submit-btn"><i class="fas fa-save"></i> সংরক্ষণ করুন</button>
+                            <button onclick="closeWorkerForm()" class="cancel-btn" style="background: #6c757d; margin-top: 5px;">বাতিল করুন</button>
                         </div>
                         <div id="workersList" class="list-container"></div>
                     </div>
                 </div>
 
-                <!-- Opinions -->
+                <!-- Opinions Section -->
                 <div class="card">
                     <div class="section-header" onclick="toggleSection('opinionSection')">
                         <h2><i class="fas fa-comments"></i> জনমত</h2>
                         <i class="fas fa-chevron-down" id="opinionChevron"></i>
                     </div>
                     <div id="opinionSection" class="collapsible" style="max-height: 0; overflow: hidden;">
-                        <button class="add-btn" onclick="toggleForm('opinionForm')"><i class="fas fa-plus"></i> মতামত যোগ করুন</button>
-                        <div id="opinionForm" class="form-container" style="display: none;">
+                        <button class="add-btn" onclick="openOpinionForm()"><i class="fas fa-plus"></i> মতামত যোগ করুন</button>
+                        <div id="opinionFormContainer" class="form-container" style="display: none;">
                             <input type="text" id="opinionName" placeholder="নাম" required>
                             <input type="tel" id="opinionPhone" placeholder="ফোন" required>
                             <textarea id="opinionText" placeholder="মতামত" rows="3" required></textarea>
                             <textarea id="opinionNotes" placeholder="অতিরিক্ত নোট" rows="2"></textarea>
                             <div id="opinionMsg" class="form-message"></div>
                             <button onclick="addOpinion()" class="submit-btn"><i class="fas fa-save"></i> সংরক্ষণ করুন</button>
+                            <button onclick="closeOpinionForm()" class="cancel-btn" style="background: #6c757d; margin-top: 5px;">বাতিল করুন</button>
                         </div>
                         <div id="opinionsList" class="list-container"></div>
                     </div>
