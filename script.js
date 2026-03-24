@@ -1,3 +1,20 @@
+// ================== PASSWORD ==================
+const CORRECT_PASSWORD = "bjp2026";
+
+function checkPassword() {
+    const input = document.getElementById('passwordInput').value;
+    const errorDiv = document.getElementById('passwordError');
+    
+    if (input === CORRECT_PASSWORD) {
+        document.getElementById('passwordModal').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        initializeApp();
+    } else {
+        errorDiv.innerHTML = '❌ ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।';
+        document.getElementById('passwordInput').value = '';
+    }
+}
+
 // ================== GLOBAL VARIABLES ==================
 let currentLanguage = 'bn';
 let boothData = [];
@@ -78,8 +95,6 @@ function updateCountdown() {
     const diffDays = Math.ceil((electionDate - today) / (1000 * 60 * 60 * 24));
     document.getElementById('daysLeft').textContent = diffDays > 0 ? diffDays : 0;
 }
-setInterval(updateCountdown, 3600000);
-updateCountdown();
 
 // ================== DARK MODE ==================
 function toggleDarkMode() {
@@ -227,8 +242,9 @@ function updateRankings() {
 }
 
 function showRankingTab(tab) {
+    const btn = event.target;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    btn.classList.add('active');
     document.getElementById('dangerRanking').style.display = tab === 'danger' ? 'block' : 'none';
     document.getElementById('swingRanking').style.display = tab === 'swing' ? 'block' : 'none';
     document.getElementById('safeRanking').style.display = tab === 'safe' ? 'block' : 'none';
@@ -667,5 +683,10 @@ window.onclick = function(event) {
 };
 
 // ================== INITIALIZE ==================
-loadBoothData();
-setInterval(() => updateDashboard(), 1000);
+function initializeApp() {
+    updateCountdown();
+    setInterval(updateCountdown, 3600000);
+    if (localStorage.getItem('darkMode') === 'true') toggleDarkMode();
+    loadBoothData();
+    setInterval(() => updateDashboard(), 1000);
+}
