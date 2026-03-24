@@ -475,12 +475,22 @@ body.dark-mode .target-section {
 
 .submit-btn { background: #28a745; }
 .export-btn { background: #17a2b8; }
+.cancel-btn {
+    padding: 12px;
+    border-radius: 30px;
+    width: 100%;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+}
 
 .form-container {
     background: #f8f9fa;
     padding: 20px;
     border-radius: 16px;
     margin: 10px 0;
+    display: none;
 }
 
 body.dark-mode .form-container {
