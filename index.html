@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/compromise/14.7.0/compromise.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -19,7 +18,7 @@
                 <h1>নাগরাকাটা (এসটি) নির্বাচনী কমান্ড সেন্টার</h1>
             </div>
             <div class="header-right">
-                <div class="countdown-timer" id="countdownTimer">
+                <div class="countdown-timer">
                     <i class="fas fa-hourglass-half"></i>
                     <span id="daysLeft">--</span> দিন বাকি
                 </div>
@@ -28,14 +27,14 @@
                     <button onclick="setLanguage('hi')" id="langHi">हिन्दी</button>
                     <button onclick="setLanguage('en')" id="langEn">English</button>
                 </div>
-                <button class="dark-mode-btn" onclick="toggleDarkMode()" id="darkModeBtn">
+                <button class="dark-mode-btn" onclick="toggleDarkMode()">
                     <i class="fas fa-moon"></i>
                 </button>
             </div>
         </div>
 
         <!-- Dashboard Cards -->
-        <div class="dashboard-grid" id="dashboardGrid">
+        <div class="dashboard-grid">
             <div class="dashboard-card">
                 <div class="card-icon"><i class="fas fa-chart-line"></i></div>
                 <div class="card-value" id="totalBooths">0</div>
@@ -68,7 +67,7 @@
             </div>
         </div>
 
-        <!-- Priority Action Alert -->
+        <!-- Priority Alert -->
         <div class="card alert-card" id="priorityAlert" style="display: none;">
             <div class="alert-header">
                 <i class="fas fa-bell"></i>
@@ -77,10 +76,10 @@
             <div id="alertContent" class="alert-content"></div>
         </div>
 
-        <!-- Booth Ranking Section -->
+        <!-- Booth Ranking -->
         <div class="card">
             <div class="section-header" onclick="toggleSection('rankingSection')">
-                <h2><i class="fas fa-trophy"></i> বুথ র্যাঙ্কিং ও টার্গেট</h2>
+                <h2><i class="fas fa-trophy"></i> বুথ র্যাঙ্কিং</h2>
                 <i class="fas fa-chevron-down" id="rankingChevron"></i>
             </div>
             <div id="rankingSection" class="collapsible" style="max-height: 0; overflow: hidden;">
@@ -104,37 +103,30 @@
             <div id="progressSection" class="collapsible" style="max-height: 0; overflow: hidden;">
                 <div class="progress-stats">
                     <div class="progress-item">
-                        <span>🎯 কর্মী নিয়োগ লক্ষ্য</span>
+                        <span>🎯 কর্মী নিয়োগ</span>
                         <div class="progress-bar-container">
-                            <div class="progress-bar" id="workerProgress" style="width: 0%"></div>
+                            <div class="progress-bar" id="workerProgress"></div>
                         </div>
-                        <span id="workerProgressText">0%</span>
+                        <span id="workerPercent">0%</span>
                     </div>
                     <div class="progress-item">
-                        <span>📝 মতামত সংগ্রহ লক্ষ্য</span>
+                        <span>📝 মতামত সংগ্রহ</span>
                         <div class="progress-bar-container">
-                            <div class="progress-bar" id="opinionProgress" style="width: 0%"></div>
+                            <div class="progress-bar" id="opinionProgress"></div>
                         </div>
-                        <span id="opinionProgressText">0%</span>
-                    </div>
-                    <div class="progress-item">
-                        <span>🏠 ভোটার যোগাযোগ লক্ষ্য</span>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" id="contactProgress" style="width: 0%"></div>
-                        </div>
-                        <span id="contactProgressText">0%</span>
+                        <span id="opinionPercent">0%</span>
                     </div>
                 </div>
                 <div class="weekly-target">
                     <h4>🎯 এই সপ্তাহের টার্গেট</h4>
-                    <ul id="weeklyTargetList"></ul>
+                    <ul id="weeklyTarget"></ul>
                 </div>
             </div>
         </div>
 
         <!-- Booth Selection -->
         <div class="card">
-            <label for="boothSelect"><i class="fas fa-map-marker-alt"></i> বুথ নির্বাচন করুন</label>
+            <label><i class="fas fa-map-marker-alt"></i> বুথ নির্বাচন করুন</label>
             <select id="boothSelect" onchange="loadBoothDetails()">
                 <option value="">-- একটি বুথ বেছে নিন --</option>
             </select>
@@ -145,40 +137,36 @@
             <div class="card">
                 <div class="booth-header">
                     <h2 id="boothTitle"></h2>
-                    <div class="booth-status" id="boothStatusBadge"></div>
+                    <div class="booth-status" id="boothStatus"></div>
                 </div>
-                <table class="details-table" id="analysisTable">\</table>
+                <table class="details-table" id="boothInfoTable">\</table>
                 <div class="target-section">
                     <h4><i class="fas fa-bullseye"></i> টার্গেট সেট করুন</h4>
                     <div class="target-input">
-                        <input type="number" id="targetVoteShare" step="0.1" placeholder="টার্গেট ভোটশেয়ার %">
+                        <input type="number" id="targetVote" step="0.1" placeholder="টার্গেট ভোটশেয়ার %">
                         <button onclick="setBoothTarget()" class="small-btn">সেট করুন</button>
                     </div>
                     <div id="targetDisplay" class="target-display"></div>
                 </div>
                 <div class="action-buttons">
-                    <button class="action-btn" onclick="showAnalysisModal()">
-                        <i class="fas fa-search"></i> বিশ্লেষণ দেখুন
-                    </button>
-                    <button class="action-btn" onclick="showStrategyModal()">
-                        <i class="fas fa-lightbulb"></i> কৌশল দেখুন
-                    </button>
-                    <button class="action-btn" onclick="exportPDFReport()">
-                        <i class="fas fa-file-pdf"></i> PDF রিপোর্ট
-                    </button>
+                    <button class="action-btn" onclick="showAnalysisModal()"><i class="fas fa-search"></i> বিশ্লেষণ</button>
+                    <button class="action-btn" onclick="showStrategyModal()"><i class="fas fa-lightbulb"></i> কৌশল</button>
+                    <button class="action-btn" onclick="exportPDFReport()"><i class="fas fa-file-pdf"></i> PDF</button>
                 </div>
             </div>
 
-            <!-- Smart Analysis Card -->
+            <!-- Smart Analysis -->
             <div class="card">
                 <h2><i class="fas fa-chart-line"></i> স্মার্ট বিশ্লেষণ ও পরামর্শ</h2>
                 <div class="chart-container">
                     <canvas id="voteChart"></canvas>
                 </div>
-                <div class="keyword-cloud" id="keywordCloud"></div>
+                <div class="keyword-cloud" id="keywordCloud">
+                    <span class="text-muted">মতামত দিন...</span>
+                </div>
                 <div class="sentiment-container">
                     <div class="sentiment-meter">
-                        <div class="sentiment-indicator" id="sentimentIndicator" style="left: 50%;"></div>
+                        <div class="sentiment-indicator" id="sentimentIndicator"></div>
                     </div>
                     <div class="sentiment-labels">
                         <span>😞 নেতিবাচক</span>
@@ -187,55 +175,45 @@
                     </div>
                 </div>
                 <div id="adviceList" class="advice-list"></div>
-                <button class="export-btn" onclick="exportBoothReport()">
-                    <i class="fas fa-download"></i> CSV রিপোর্ট ডাউনলোড
-                </button>
+                <button class="export-btn" onclick="exportCSVReport()"><i class="fas fa-download"></i> CSV রিপোর্ট</button>
             </div>
 
-            <!-- Workers Section -->
+            <!-- Workers -->
             <div class="card">
                 <div class="section-header" onclick="toggleSection('workerSection')">
                     <h2><i class="fas fa-users"></i> কর্মীবৃন্দ</h2>
                     <i class="fas fa-chevron-down" id="workerChevron"></i>
                 </div>
                 <div id="workerSection" class="collapsible" style="max-height: 0; overflow: hidden;">
-                    <button class="add-btn" onclick="toggleForm('workerFormContainer')">
-                        <i class="fas fa-plus"></i> কর্মী যোগ করুন
-                    </button>
-                    <div id="workerFormContainer" class="form-container" style="display: none;">
-                        <form id="workerForm" onsubmit="addNewWorker(event)">
-                            <input type="text" id="workerName" placeholder="নাম" required>
-                            <input type="tel" id="workerPhone" placeholder="ফোন" required>
-                            <input type="tel" id="workerWhatsapp" placeholder="হোয়াটসঅ্যাপ">
-                            <input type="text" id="workerRole" placeholder="দায়িত্ব" required>
-                            <textarea id="workerNotes" placeholder="মন্তব্য"></textarea>
-                            <div id="workerFormMessage" class="form-message"></div>
-                            <button type="submit" class="submit-btn"><i class="fas fa-save"></i> সংরক্ষণ করুন</button>
-                        </form>
+                    <button class="add-btn" onclick="toggleForm('workerForm')"><i class="fas fa-plus"></i> কর্মী যোগ করুন</button>
+                    <div id="workerForm" class="form-container" style="display: none;">
+                        <input type="text" id="workerName" placeholder="নাম" required>
+                        <input type="tel" id="workerPhone" placeholder="ফোন" required>
+                        <input type="tel" id="workerWhatsapp" placeholder="হোয়াটসঅ্যাপ">
+                        <input type="text" id="workerRole" placeholder="দায়িত্ব" required>
+                        <textarea id="workerNotes" placeholder="মন্তব্য" rows="2"></textarea>
+                        <div id="workerMsg" class="form-message"></div>
+                        <button onclick="addWorker()" class="submit-btn"><i class="fas fa-save"></i> সংরক্ষণ করুন</button>
                     </div>
                     <div id="workersList" class="list-container"></div>
                 </div>
             </div>
 
-            <!-- Opinions Section -->
+            <!-- Opinions -->
             <div class="card">
                 <div class="section-header" onclick="toggleSection('opinionSection')">
                     <h2><i class="fas fa-comments"></i> জনমত</h2>
                     <i class="fas fa-chevron-down" id="opinionChevron"></i>
                 </div>
                 <div id="opinionSection" class="collapsible" style="max-height: 0; overflow: hidden;">
-                    <button class="add-btn" onclick="toggleForm('opinionFormContainer')">
-                        <i class="fas fa-plus"></i> মতামত যোগ করুন
-                    </button>
-                    <div id="opinionFormContainer" class="form-container" style="display: none;">
-                        <form id="opinionForm" onsubmit="addNewOpinion(event)">
-                            <input type="text" id="opinionPersonName" placeholder="নাম" required>
-                            <input type="tel" id="opinionPhone" placeholder="ফোন" required>
-                            <textarea id="opinionText" placeholder="মতামত" rows="3" required></textarea>
-                            <textarea id="opinionNotes" placeholder="অতিরিক্ত নোট"></textarea>
-                            <div id="opinionFormMessage" class="form-message"></div>
-                            <button type="submit" class="submit-btn"><i class="fas fa-save"></i> সংরক্ষণ করুন</button>
-                        </form>
+                    <button class="add-btn" onclick="toggleForm('opinionForm')"><i class="fas fa-plus"></i> মতামত যোগ করুন</button>
+                    <div id="opinionForm" class="form-container" style="display: none;">
+                        <input type="text" id="opinionName" placeholder="নাম" required>
+                        <input type="tel" id="opinionPhone" placeholder="ফোন" required>
+                        <textarea id="opinionText" placeholder="মতামত" rows="3" required></textarea>
+                        <textarea id="opinionNotes" placeholder="অতিরিক্ত নোট" rows="2"></textarea>
+                        <div id="opinionMsg" class="form-message"></div>
+                        <button onclick="addOpinion()" class="submit-btn"><i class="fas fa-save"></i> সংরক্ষণ করুন</button>
                     </div>
                     <div id="opinionsList" class="list-container"></div>
                 </div>
@@ -248,7 +226,7 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal('analysisModal')">&times;</span>
             <h2><i class="fas fa-search"></i> বিস্তারিত বিশ্লেষণ</h2>
-            <p id="modalAnalysisText" class="modal-text"></p>
+            <p id="modalAnalysis" class="modal-text"></p>
         </div>
     </div>
 
@@ -256,7 +234,7 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal('strategyModal')">&times;</span>
             <h2><i class="fas fa-lightbulb"></i> বিস্তারিত কৌশল</h2>
-            <p id="modalStrategyText" class="modal-text"></p>
+            <p id="modalStrategy" class="modal-text"></p>
         </div>
     </div>
 
@@ -264,15 +242,13 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal('editWorkerModal')">&times;</span>
             <h2><i class="fas fa-edit"></i> কর্মী সম্পাদনা</h2>
-            <form id="editWorkerForm" onsubmit="updateWorker(event)">
-                <input type="hidden" id="editWorkerId">
-                <input type="text" id="editWorkerName" placeholder="নাম" required>
-                <input type="tel" id="editWorkerPhone" placeholder="ফোন" required>
-                <input type="tel" id="editWorkerWhatsapp" placeholder="হোয়াটসঅ্যাপ">
-                <input type="text" id="editWorkerRole" placeholder="দায়িত্ব" required>
-                <textarea id="editWorkerNotes" placeholder="মন্তব্য"></textarea>
-                <button type="submit" class="submit-btn"><i class="fas fa-save"></i> আপডেট করুন</button>
-            </form>
+            <input type="hidden" id="editWorkerIndex">
+            <input type="text" id="editWorkerName" placeholder="নাম">
+            <input type="tel" id="editWorkerPhone" placeholder="ফোন">
+            <input type="tel" id="editWorkerWhatsapp" placeholder="হোয়াটসঅ্যাপ">
+            <input type="text" id="editWorkerRole" placeholder="দায়িত্ব">
+            <textarea id="editWorkerNotes" placeholder="মন্তব্য" rows="2"></textarea>
+            <button onclick="updateWorker()" class="submit-btn"><i class="fas fa-save"></i> আপডেট করুন</button>
         </div>
     </div>
 
@@ -280,14 +256,12 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal('editOpinionModal')">&times;</span>
             <h2><i class="fas fa-edit"></i> মতামত সম্পাদনা</h2>
-            <form id="editOpinionForm" onsubmit="updateOpinion(event)">
-                <input type="hidden" id="editOpinionId">
-                <input type="text" id="editOpinionPersonName" placeholder="নাম" required>
-                <input type="tel" id="editOpinionPhone" placeholder="ফোন" required>
-                <textarea id="editOpinionText" placeholder="মতামত" rows="3" required></textarea>
-                <textarea id="editOpinionNotes" placeholder="অতিরিক্ত নোট"></textarea>
-                <button type="submit" class="submit-btn"><i class="fas fa-save"></i> আপডেট করুন</button>
-            </form>
+            <input type="hidden" id="editOpinionIndex">
+            <input type="text" id="editOpinionName" placeholder="নাম">
+            <input type="tel" id="editOpinionPhone" placeholder="ফোন">
+            <textarea id="editOpinionText" placeholder="মতামত" rows="3"></textarea>
+            <textarea id="editOpinionNotes" placeholder="অতিরিক্ত নোট" rows="2"></textarea>
+            <button onclick="updateOpinion()" class="submit-btn"><i class="fas fa-save"></i> আপডেট করুন</button>
         </div>
     </div>
 
