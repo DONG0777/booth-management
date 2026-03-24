@@ -1,14 +1,14 @@
-// ================== Global Variables ==================
+// ================== GLOBAL VARIABLES ==================
 let currentLanguage = 'bn';
 let boothData = [];
 let workersData = JSON.parse(localStorage.getItem('workers')) || {};
 let opinionsData = JSON.parse(localStorage.getItem('opinions')) || {};
 let boothTargets = JSON.parse(localStorage.getItem('boothTargets')) || {};
-let myChart = null;
 let currentBooth = null;
 let currentBoothDetails = null;
+let voteChart = null;
 
-// ================== Translations ==================
+// ================== TRANSLATIONS ==================
 const translations = {
     bn: {
         chooseOption: "-- একটি বুথ বেছে নিন --",
@@ -17,400 +17,631 @@ const translations = {
         successMsg: "সফলভাবে যুক্ত হয়েছে!",
         updateSuccess: "সফলভাবে আপডেট হয়েছে!",
         deleteSuccess: "সফলভাবে মুছে ফেলা হয়েছে!",
-        errorMsg: "ত্রুটি: ",
-        required: "সব আবশ্যক ফিল্ড পূরণ করুন",
-        duplicatePhone: "এই ফোন নম্বরটি ইতিমধ্যে এই বুথে যুক্ত আছে।",
-        analysisNotAvailable: "বিশ্লেষণ দেওয়া নেই",
-        strategyNotAvailable: "কৌশল দেওয়া নেই",
-        confirmDelete: "আপনি কি নিশ্চিত যে এটি মুছে ফেলতে চান?",
-        advice: {
-            noOpinions: "এখনও কোনো মতামত রেকর্ড হয়নি। মতামত সংগ্রহ শুরু করুন।"
-        }
+        duplicatePhone: "এই ফোন নম্বরটি ইতিমধ্যে যুক্ত আছে।",
+        required: "সব আবশ্যক ফিল্ড পূরণ করুন।",
+        confirmDelete: "আপনি কি নিশ্চিত?",
+        analysisNotAvailable: "বিশ্লেষণ দেওয়া নেই।",
+        strategyNotAvailable: "কৌশল দেওয়া নেই।",
+        noOpinionsText: "এখনও কোনো মতামত নেই। মতামত দিন।"
     },
     hi: {
         chooseOption: "-- एक बूथ चुनें --",
-        noWorkers: "इस बूथ के लिए अभी कोई कार्यकर्ता नहीं जोड़ा गया।",
-        noOpinions: "इस बूथ के लिए अभी कोई राय दर्ज नहीं की गई।",
+        noWorkers: "इस बूथ में अभी कोई कार्यकर्ता नहीं है।",
+        noOpinions: "इस बूथ में अभी कोई राय नहीं है।",
         successMsg: "सफलतापूर्वक जोड़ा गया!",
-        updateSuccess: "सफलतापूर्वक अपडेट किया गया!",
-        deleteSuccess: "सफलतापूर्वक हटा दिया गया!",
-        errorMsg: "त्रुटि: ",
-        required: "सभी आवश्यक फ़ील्ड भरें",
-        duplicatePhone: "यह फोन नंबर पहले से इस बूथ में जोड़ा गया है।",
-        analysisNotAvailable: "विश्लेषण नहीं दिया गया",
-        strategyNotAvailable: "रणनीति नहीं दी गई",
-        confirmDelete: "क्या आप वाकई इसे हटाना चाहते हैं?",
-        advice: { noOpinions: "अभी कोई राय दर्ज नहीं की गई। प्रतिक्रिया एकत्र करना शुरू करें।" }
+        updateSuccess: "अपडेट किया गया!",
+        deleteSuccess: "हटा दिया गया!",
+        duplicatePhone: "यह फोन नंबर पहले से मौजूद है।",
+        required: "सभी आवश्यक फ़ील्ड भरें।",
+        confirmDelete: "क्या आप हटाना चाहते हैं?",
+        analysisNotAvailable: "विश्लेषण उपलब्ध नहीं।",
+        strategyNotAvailable: "रणनीति उपलब्ध नहीं।",
+        noOpinionsText: "अभी कोई राय नहीं।"
     },
     en: {
         chooseOption: "-- Choose a booth --",
-        noWorkers: "No workers added for this booth yet.",
-        noOpinions: "No opinions recorded for this booth yet.",
+        noWorkers: "No workers added yet.",
+        noOpinions: "No opinions recorded yet.",
         successMsg: "Added successfully!",
         updateSuccess: "Updated successfully!",
         deleteSuccess: "Deleted successfully!",
-        errorMsg: "Error: ",
-        required: "All required fields must be filled",
-        duplicatePhone: "This phone number is already added for this booth.",
-        analysisNotAvailable: "No analysis provided",
-        strategyNotAvailable: "No strategy provided",
-        confirmDelete: "Are you sure you want to delete this item?",
-        advice: { noOpinions: "No opinions recorded yet. Start collecting feedback." }
+        duplicatePhone: "This phone number already exists.",
+        required: "Please fill all required fields.",
+        confirmDelete: "Are you sure?",
+        analysisNotAvailable: "Analysis not available.",
+        strategyNotAvailable: "Strategy not available.",
+        noOpinionsText: "No opinions yet. Add your feedback."
     }
 };
 
-// ================== Language Functions ==================
+// ================== LANGUAGE FUNCTIONS ==================
 function setLanguage(lang) {
     currentLanguage = lang;
+    document.getElementById('langBn').classList.toggle('active', lang === 'bn');
+    document.getElementById('langHi').classList.toggle('active', lang === 'hi');
+    document.getElementById('langEn').classList.toggle('active', lang === 'en');
+    
     const select = document.getElementById('boothSelect');
-    if (select) {
-        const defaultOption = select.querySelector('option[value=""]');
-        if (defaultOption) defaultOption.textContent = translations[lang].chooseOption;
+    if (select && select.options[0]) {
+        select.options[0].text = translations[lang].chooseOption;
     }
-    document.querySelectorAll('[data-lang]').forEach(el => {
-        const key = el.getAttribute('data-lang');
-        if (key === 'en' || key === 'hi' || key === 'bn') {
-            el.style.display = (key === lang) ? 'inline' : 'none';
-        }
-    });
-    document.getElementById('langBn')?.classList.toggle('active', lang === 'bn');
-    document.getElementById('langHi')?.classList.toggle('active', lang === 'hi');
-    document.getElementById('langEn')?.classList.toggle('active', lang === 'en');
+    
+    if (currentBoothDetails) {
+        loadBoothDetails();
+    }
 }
 
-// ================== Countdown Timer ==================
+// ================== COUNTDOWN ==================
 function updateCountdown() {
     const electionDate = new Date(2026, 2, 24);
     const today = new Date();
-    const diffTime = electionDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const daysLeftElement = document.getElementById('daysLeft');
-    if (daysLeftElement) {
-        daysLeftElement.textContent = diffDays > 0 ? diffDays : 0;
-    }
-    if (diffDays <= 30 && diffDays > 0 && diffDays % 7 === 0) {
-        showNotification(`⚠️ মাত্র ${diffDays} দিন বাকি! জরুরি প্রস্তুতি নিন।`);
+    const diffDays = Math.ceil((electionDate - today) / (1000 * 60 * 60 * 24));
+    document.getElementById('daysLeft').textContent = diffDays > 0 ? diffDays : 0;
+}
+setInterval(updateCountdown, 3600000);
+updateCountdown();
+
+// ================== DARK MODE ==================
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const btn = document.querySelector('.dark-mode-btn i');
+    if (btn) {
+        btn.className = document.body.classList.contains('dark-mode') ? 'fas fa-sun' : 'fas fa-moon';
     }
 }
 
-// ================== Dashboard Updates ==================
+// ================== NOTIFICATION ==================
+function showNotification(msg, isError = false) {
+    const notif = document.createElement('div');
+    notif.className = 'notification';
+    notif.style.background = isError ? '#dc3545' : '#28a745';
+    notif.innerHTML = `<i class="fas fa-${isError ? 'exclamation-circle' : 'check-circle'}"></i> ${msg}`;
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 3000);
+}
+
+// ================== LOAD BOOTH DATA ==================
+async function loadBoothData() {
+    try {
+        const response = await fetch('data/boothData.json');
+        boothData = await response.json();
+        populateBoothDropdown();
+        updateDashboard();
+        updateRankings();
+        showNotification('ডেটা লোড成功了!');
+    } catch (error) {
+        console.error('Error loading data:', error);
+        showNotification('ডেটা লোড করতে সমস্যা!', true);
+    }
+}
+
+function populateBoothDropdown() {
+    const select = document.getElementById('boothSelect');
+    select.innerHTML = `<option value="">${translations[currentLanguage].chooseOption}</option>`;
+    boothData.sort((a,b) => (a.BoothNo || 0) - (b.BoothNo || 0)).forEach(b => {
+        const option = document.createElement('option');
+        option.value = b.BoothNo;
+        option.textContent = `${b.BoothNo}. ${b.BoothName} (${b.Segment})`;
+        select.appendChild(option);
+    });
+}
+
+// ================== DASHBOARD ==================
 function updateDashboard() {
     if (!boothData.length) return;
+    
     document.getElementById('totalBooths').textContent = boothData.length;
-    let criticalCount = 0, swingCount = 0, safeCount = 0;
-    boothData.forEach(booth => {
-        const bjpDiff = (booth.BJP2024 || 0) - (booth.BJP2021 || 0);
-        if (bjpDiff < -10) criticalCount++;
-        else if (Math.abs(bjpDiff) <= 10) swingCount++;
-        else if (bjpDiff > 5) safeCount++;
+    
+    let critical = 0, swing = 0, safe = 0;
+    boothData.forEach(b => {
+        const diff = (b.BJP2024 || 0) - (b.BJP2021 || 0);
+        if (diff < -10) critical++;
+        else if (Math.abs(diff) <= 10 && (b.BJP2024 || 0) < 55) swing++;
+        else if (diff > 5) safe++;
     });
-    document.getElementById('criticalBooths').textContent = criticalCount;
-    document.getElementById('swingBooths').textContent = swingCount;
-    document.getElementById('safeBooths').textContent = safeCount;
+    
+    document.getElementById('criticalBooths').textContent = critical;
+    document.getElementById('swingBooths').textContent = swing;
+    document.getElementById('safeBooths').textContent = safe;
+    
     let totalWorkers = 0, totalOpinions = 0;
-    Object.values(workersData).forEach(workers => totalWorkers += workers.length);
-    Object.values(opinionsData).forEach(opinions => totalOpinions += opinions.length);
+    Object.values(workersData).forEach(w => totalWorkers += w.length);
+    Object.values(opinionsData).forEach(o => totalOpinions += o.length);
     document.getElementById('totalWorkers').textContent = totalWorkers;
     document.getElementById('totalOpinions').textContent = totalOpinions;
-    updateProgressBars(totalWorkers, totalOpinions);
-    checkPriorityAlerts(criticalCount, swingCount);
-}
-
-function updateProgressBars(workers, opinions) {
-    const targetWorkers = 250, targetOpinions = 500, targetContacts = 1000;
-    const workerPercent = Math.min(100, Math.round((workers / targetWorkers) * 100));
-    const opinionPercent = Math.min(100, Math.round((opinions / targetOpinions) * 100));
-    const contactPercent = Math.min(100, Math.round(((workers * 10 + opinions) / targetContacts) * 100));
-    const workerProgress = document.getElementById('workerProgress');
-    const opinionProgress = document.getElementById('opinionProgress');
-    const contactProgress = document.getElementById('contactProgress');
-    const workerText = document.getElementById('workerProgressText');
-    const opinionText = document.getElementById('opinionProgressText');
-    const contactText = document.getElementById('contactProgressText');
-    if (workerProgress) workerProgress.style.width = workerPercent + '%';
-    if (opinionProgress) opinionProgress.style.width = opinionPercent + '%';
-    if (contactProgress) contactProgress.style.width = contactPercent + '%';
-    if (workerText) workerText.textContent = workerPercent + '%';
-    if (opinionText) opinionText.textContent = opinionPercent + '%';
-    if (contactText) contactText.textContent = contactPercent + '%';
-}
-
-function checkPriorityAlerts(criticalCount, swingCount) {
-    const alertCard = document.getElementById('priorityAlert');
-    const alertContent = document.getElementById('alertContent');
-    if (criticalCount > 0 || swingCount > 0) {
-        alertCard.style.display = 'block';
-        let html = '';
-        if (criticalCount > 0) html += `<p>🔴 <strong>${criticalCount}টি বিপদজনক বুথ</strong> - ভোটশেয়ার ১০% এর বেশি কমেছে। তাত্ক্ষণিক পদক্ষেপ প্রয়োজন!</p>`;
-        if (swingCount > 0) html += `<p>🟡 <strong>${swingCount}টি সুইং বুথ</strong> - এই বুথ জিতলেই জয় নিশ্চিত। বিশেষ টিম পাঠান।</p>`;
-        alertContent.innerHTML = html;
+    
+    // Progress bars
+    const workerPercent = Math.min(100, Math.round((totalWorkers / 250) * 100));
+    const opinionPercent = Math.min(100, Math.round((totalOpinions / 500) * 100));
+    document.getElementById('workerProgress').style.width = workerPercent + '%';
+    document.getElementById('opinionProgress').style.width = opinionPercent + '%';
+    document.getElementById('workerPercent').textContent = workerPercent + '%';
+    document.getElementById('opinionPercent').textContent = opinionPercent + '%';
+    
+    // Weekly target
+    const weeksLeft = Math.ceil((new Date(2026, 2, 24) - new Date()) / (7 * 24 * 60 * 60 * 1000));
+    const remainingWorkers = Math.max(0, 250 - totalWorkers);
+    const remainingOpinions = Math.max(0, 500 - totalOpinions);
+    const perWeekWorkers = Math.ceil(remainingWorkers / Math.max(1, weeksLeft));
+    const perWeekOpinions = Math.ceil(remainingOpinions / Math.max(1, weeksLeft));
+    document.getElementById('weeklyTarget').innerHTML = `
+        <li>🎯 এই সপ্তাহে <strong>${perWeekWorkers}</strong> জন কর্মী নিয়োগ</li>
+        <li>📝 এই সপ্তাহে <strong>${perWeekOpinions}</strong>টি মতামত সংগ্রহ</li>
+        <li>🏠 প্রতিদিন <strong>${Math.ceil(perWeekWorkers * 10)}</strong>টি বাড়িতে যোগাযোগ</li>
+        <li>🚨 জরুরি বুথ: <strong>${critical}</strong>টিতে বিশেষ টিম পাঠান</li>
+    `;
+    
+    // Alert
+    const alertDiv = document.getElementById('priorityAlert');
+    if (critical > 0 || swing > 0) {
+        alertDiv.style.display = 'block';
+        document.getElementById('alertContent').innerHTML = `
+            ${critical > 0 ? `<p>🔴 <strong>${critical}টি বিপদজনক বুথ</strong> - ভোট ১০%+ কমেছে! তাত্ক্ষণিক পদক্ষেপ প্রয়োজন।</p>` : ''}
+            ${swing > 0 ? `<p>🟡 <strong>${swing}টি সুইং বুথ</strong> - এই বুথ জিতলেই জয় নিশ্চিত। বিশেষ টিম পাঠান।</p>` : ''}
+        `;
     } else {
-        alertCard.style.display = 'none';
+        alertDiv.style.display = 'none';
     }
 }
 
-// ================== Booth Ranking ==================
+// ================== RANKINGS ==================
+function updateRankings() {
+    if (!boothData.length) return;
+    
+    // Danger booths
+    const danger = boothData.filter(b => ((b.BJP2024 || 0) - (b.BJP2021 || 0)) < -10)
+        .sort((a,b) => ((a.BJP2021 - a.BJP2024) - (b.BJP2021 - b.BJP2024)));
+    
+    document.getElementById('dangerRanking').innerHTML = danger.map(b => `
+        <div class="ranking-item" onclick="selectBooth('${b.BoothNo}')">
+            <div class="booth-name"><strong>${b.BoothNo}</strong> - ${b.BoothName}</div>
+            <div class="change-negative">⬇️ ${((b.BJP2021 - b.BJP2024) || 0).toFixed(1)}%</div>
+        </div>
+    `).join('') || '<p class="text-muted">কোনো বিপদজনক বুথ নেই</p>';
+    
+    // Swing booths
+    const swing = boothData.filter(b => {
+        const diff = (b.BJP2024 || 0) - (b.BJP2021 || 0);
+        return Math.abs(diff) <= 10 && (b.BJP2024 || 0) < 55;
+    }).sort((a,b) => (b.BJP2024 || 0) - (a.BJP2024 || 0));
+    
+    document.getElementById('swingRanking').innerHTML = swing.map(b => `
+        <div class="ranking-item" onclick="selectBooth('${b.BoothNo}')">
+            <div class="booth-name"><strong>${b.BoothNo}</strong> - ${b.BoothName}</div>
+            <div>🎯 ${b.BJP2024}% (লক্ষ্য: ${boothTargets[b.BoothNo] || '55'}%)</div>
+        </div>
+    `).join('') || '<p class="text-muted">কোনো সুইং বুথ নেই</p>';
+    
+    // Safe booths
+    const safe = boothData.filter(b => {
+        const diff = (b.BJP2024 || 0) - (b.BJP2021 || 0);
+        return diff > 5 && (b.BJP2024 || 0) > 55;
+    }).sort((a,b) => (b.BJP2024 || 0) - (a.BJP2024 || 0));
+    
+    document.getElementById('safeRanking').innerHTML = safe.map(b => `
+        <div class="ranking-item" onclick="selectBooth('${b.BoothNo}')">
+            <div class="booth-name"><strong>${b.BoothNo}</strong> - ${b.BoothName}</div>
+            <div class="change-positive">✅ +${((b.BJP2024 - b.BJP2021) || 0).toFixed(1)}%</div>
+        </div>
+    `).join('') || '<p class="text-muted">নিরাপদ বুথের তালিকা খালি</p>';
+}
+
 function showRankingTab(tab) {
-    const tabs = document.querySelectorAll('.tab-btn');
-    tabs.forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     document.getElementById('dangerRanking').style.display = tab === 'danger' ? 'block' : 'none';
     document.getElementById('swingRanking').style.display = tab === 'swing' ? 'block' : 'none';
     document.getElementById('safeRanking').style.display = tab === 'safe' ? 'block' : 'none';
-    if (tab === 'danger') loadDangerRanking();
-    else if (tab === 'swing') loadSwingRanking();
-    else if (tab === 'safe') loadSafeRanking();
 }
 
-function loadDangerRanking() {
-    const container = document.getElementById('dangerRanking');
-    if (!container) return;
-    const dangerBooths = boothData.filter(b => ((b.BJP2024 || 0) - (b.BJP2021 || 0)) < -10)
-        .sort((a,b) => ((a.BJP2021 - a.BJP2024) - (b.BJP2021 - b.BJP2024)));
-    if (dangerBooths.length === 0) { container.innerHTML = '<p class="text-muted">কোনো বিপদজনক বুথ নেই</p>'; return; }
-    container.innerHTML = dangerBooths.map(b => `
-        <div class="ranking-item" onclick="selectBoothFromRanking('${b.BoothNo}')">
-            <div class="booth-name"><strong>${b.BoothNo}</strong> - ${b.BoothName} <small>(${b.Segment})</small></div>
-            <div class="booth-change change-negative">⬇️ ${((b.BJP2021 - b.BJP2024) || 0).toFixed(1)}%</div>
-        </div>
-    `).join('');
-}
-
-function loadSwingRanking() {
-    const container = document.getElementById('swingRanking');
-    if (!container) return;
-    const swingBooths = boothData.filter(b => {
-        const diff = (b.BJP2024 || 0) - (b.BJP2021 || 0);
-        return Math.abs(diff) <= 10 && (b.BJP2024 || 0) < 55;
-    }).sort((a,b) => (b.BJP2024 || 0) - (a.BJP2024 || 0));
-    if (swingBooths.length === 0) { container.innerHTML = '<p class="text-muted">কোনো সুইং বুথ নেই</p>'; return; }
-    container.innerHTML = swingBooths.map(b => `
-        <div class="ranking-item" onclick="selectBoothFromRanking('${b.BoothNo}')">
-            <div class="booth-name"><strong>${b.BoothNo}</strong> - ${b.BoothName} <small>(${b.Segment})</small></div>
-            <div class="booth-change">🎯 ${b.BJP2024}% (লক্ষ্য: ${boothTargets[b.BoothNo] || '55'}%)</div>
-        </div>
-    `).join('');
-}
-
-function loadSafeRanking() {
-    const container = document.getElementById('safeRanking');
-    if (!container) return;
-    const safeBooths = boothData.filter(b => {
-        const diff = (b.BJP2024 || 0) - (b.BJP2021 || 0);
-        return diff > 5 && (b.BJP2024 || 0) > 55;
-    }).sort((a,b) => (b.BJP2024 || 0) - (a.BJP2024 || 0));
-    if (safeBooths.length === 0) { container.innerHTML = '<p class="text-muted">নিরাপদ বুথের তালিকা খালি</p>'; return; }
-    container.innerHTML = safeBooths.map(b => `
-        <div class="ranking-item" onclick="selectBoothFromRanking('${b.BoothNo}')">
-            <div class="booth-name"><strong>${b.BoothNo}</strong> - ${b.BoothName} <small>(${b.Segment})</small></div>
-            <div class="booth-change change-positive">✅ ${((b.BJP2024 - b.BJP2021) || 0).toFixed(1)}%</div>
-        </div>
-    `).join('');
-}
-
-function selectBoothFromRanking(boothNo) {
-    const select = document.getElementById('boothSelect');
-    select.value = boothNo;
+function selectBooth(boothNo) {
+    document.getElementById('boothSelect').value = boothNo;
     loadBoothDetails();
     document.getElementById('boothDetails').scrollIntoView({ behavior: 'smooth' });
 }
 
-// ================== Weekly Target ==================
-function loadWeeklyTarget() {
-    const container = document.getElementById('weeklyTargetList');
-    if (!container) return;
-    const totalWorkers = Object.values(workersData).reduce((sum, w) => sum + w.length, 0);
-    const totalOpinions = Object.values(opinionsData).reduce((sum, o) => sum + o.length, 0);
-    const remainingWorkers = 250 - totalWorkers;
-    const remainingOpinions = 500 - totalOpinions;
-    const weeksLeft = Math.ceil((new Date(2026, 2, 24) - new Date()) / (7 * 24 * 60 * 60 * 1000));
-    const perWeekWorkers = Math.ceil(remainingWorkers / Math.max(1, weeksLeft));
-    const perWeekOpinions = Math.ceil(remainingOpinions / Math.max(1, weeksLeft));
-    container.innerHTML = `
-        <li>🎯 এই সপ্তাহে <strong>${perWeekWorkers}</strong> জন নতুন কর্মী নিয়োগ করুন</li>
-        <li>📝 এই সপ্তাহে <strong>${perWeekOpinions}</strong>টি মতামত সংগ্রহ করুন</li>
-        <li>🏠 প্রতিদিন <strong>${Math.ceil(perWeekWorkers * 10)}</strong>টি বাড়িতে যোগাযোগ করুন</li>
-        <li>🚨 ${document.getElementById('criticalBooths')?.textContent || 0}টি বিপদজনক বুথে বিশেষ টিম পাঠান</li>
+// ================== BOOTH DETAILS ==================
+function loadBoothDetails() {
+    const boothNo = document.getElementById('boothSelect').value;
+    if (!boothNo) {
+        document.getElementById('boothDetails').style.display = 'none';
+        return;
+    }
+    
+    currentBooth = boothNo;
+    currentBoothDetails = boothData.find(b => b.BoothNo == boothNo);
+    document.getElementById('boothDetails').style.display = 'block';
+    document.getElementById('boothTitle').innerHTML = `${currentBoothDetails.BoothNo}. ${currentBoothDetails.BoothName}`;
+    
+    // Booth status badge
+    const diff = (currentBoothDetails.BJP2024 || 0) - (currentBoothDetails.BJP2021 || 0);
+    const statusDiv = document.getElementById('boothStatus');
+    if (diff < -10) {
+        statusDiv.innerHTML = '🔴 বিপদজনক';
+        statusDiv.className = 'booth-status status-critical';
+    } else if (Math.abs(diff) <= 10 && (currentBoothDetails.BJP2024 || 0) < 55) {
+        statusDiv.innerHTML = '🟡 সুইং বুথ';
+        statusDiv.className = 'booth-status status-swing';
+    } else if (diff > 5) {
+        statusDiv.innerHTML = '🟢 নিরাপদ';
+        statusDiv.className = 'booth-status status-safe';
+    } else {
+        statusDiv.innerHTML = '⚪ স্থিতিশীল';
+        statusDiv.className = 'booth-status status-stable';
+    }
+    
+    // Booth info table
+    const table = document.getElementById('boothInfoTable');
+    table.innerHTML = `
+        <tr><td>সেগমেন্ট</td><td>${currentBoothDetails.Segment}</td></tr>
+        <tr><td>মুসলমান %</td><td>${currentBoothDetails.MuslimPercent}%</td></tr>
+        <tr><td>মোট ভোটার</td><td>${currentBoothDetails.TotalElectors}</td></tr>
+        <tr><td>ভোট % ২০২১</td><td>${currentBoothDetails.Poll2021}%</td></tr>
+        <tr><td>ভোট % ২০২৪</td><td>${currentBoothDetails.Poll2024}%</td></tr>
+        <tr><td>বিজেপি ২০২১</td><td>${currentBoothDetails.BJP2021}%</td></tr>
+        <tr><td>তৃণমূল ২০২১</td><td>${currentBoothDetails.TMC2021}%</td></tr>
+        <tr><td>অন্যান্য ২০২১</td><td>${currentBoothDetails.Other2021}%</td></tr>
+        <tr><td>বিজেপি ২০২৪</td><td>${currentBoothDetails.BJP2024}%</td></tr>
+        <tr><td>তৃণমূল ২০২৪</td><td>${currentBoothDetails.TMC2024}%</td></tr>
+        <tr><td>অন্যান্য ২০২৪</td><td>${currentBoothDetails.Other2024}%</td></tr>
     `;
+    
+    // Target display
+    const target = boothTargets[boothNo];
+    document.getElementById('targetDisplay').innerHTML = target ? `🎯 টার্গেট: ${target}% (বর্তমান: ${currentBoothDetails.BJP2024}%)` : '🎯 এখনো টার্গেট সেট করা হয়নি';
+    document.getElementById('targetVote').value = target || '';
+    
+    // Load workers and opinions
+    displayWorkers(workersData[boothNo] || []);
+    displayOpinions(opinionsData[boothNo] || []);
+    
+    // Generate analysis
+    generateAnalysis();
 }
 
-// ================== Booth Target Setting ==================
 function setBoothTarget() {
     if (!currentBooth) return;
-    const target = parseFloat(document.getElementById('targetVoteShare').value);
+    const target = parseFloat(document.getElementById('targetVote').value);
     if (isNaN(target) || target < 0 || target > 100) {
-        showNotification('সঠিক টার্গেট ভোটশেয়ার দিন (0-100)');
+        showNotification('সঠিক টার্গেট দিন (0-100)', true);
         return;
     }
     boothTargets[currentBooth] = target;
     localStorage.setItem('boothTargets', JSON.stringify(boothTargets));
-    document.getElementById('targetDisplay').innerHTML = `🎯 টার্গেট: ${target}% ভোট`;
-    showNotification(`বুথ ${currentBooth}-এর টার্গেট ${target}% সেট করা হয়েছে`);
+    document.getElementById('targetDisplay').innerHTML = `🎯 টার্গেট: ${target}% (বর্তমান: ${currentBoothDetails.BJP2024}%)`;
+    showNotification(`টার্গেট ${target}% সেট করা হয়েছে`);
+    updateRankings();
 }
 
-// ================== PDF Report Export ==================
+// ================== ANALYSIS & ADVICE ==================
+function generateAnalysis() {
+    if (!currentBoothDetails) return;
+    
+    // Chart
+    const ctx = document.getElementById('voteChart').getContext('2d');
+    if (voteChart) voteChart.destroy();
+    voteChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['২০২১', '২০২৪'],
+            datasets: [
+                { label: 'বিজেপি', data: [currentBoothDetails.BJP2021, currentBoothDetails.BJP2024], backgroundColor: '#ff6b6b', borderRadius: 6 },
+                { label: 'তৃণমূল', data: [currentBoothDetails.TMC2021, currentBoothDetails.TMC2024], backgroundColor: '#4ecdc4', borderRadius: 6 },
+                { label: 'অন্যান্য', data: [currentBoothDetails.Other2021, currentBoothDetails.Other2024], backgroundColor: '#95a5a6', borderRadius: 6 }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+    });
+    
+    // Keyword cloud
+    const opinions = opinionsData[currentBooth] || [];
+    const cloudDiv = document.getElementById('keywordCloud');
+    if (opinions.length === 0) {
+        cloudDiv.innerHTML = `<span class="text-muted">${translations[currentLanguage].noOpinionsText}</span>`;
+    } else {
+        const allText = opinions.map(o => o.opinion + ' ' + (o.notes || '')).join(' ');
+        const words = allText.split(/[\s,।]+/).filter(w => w.length > 1);
+        const stopwords = ['এবং', 'করে', 'থেকে', 'এই', 'যে', 'কি', 'তা', 'জন্য', 'হয়', 'না', 'তে', 'ের', 'আছে', 'ছিল'];
+        const filtered = words.filter(w => !stopwords.includes(w) && !/^\d+$/.test(w));
+        const freq = {};
+        filtered.forEach(w => freq[w] = (freq[w] || 0) + 1);
+        const sorted = Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 20);
+        const maxFreq = sorted[0]?.[1] || 1;
+        cloudDiv.innerHTML = sorted.map(([word, count]) => {
+            const size = count / maxFreq;
+            let cls = 'keyword-tag';
+            if (size > 0.7) cls += ' large';
+            else if (size > 0.4) cls += ' medium';
+            else cls += ' small';
+            return `<span class="${cls}">${word}</span>`;
+        }).join('');
+    }
+    
+    // Sentiment meter
+    const indicator = document.getElementById('sentimentIndicator');
+    if (opinions.length === 0) {
+        indicator.style.left = '50%';
+    } else {
+        let score = 0;
+        const pos = ['ভাল', 'সন্তুষ্ট', 'ধন্যবাদ', 'উন্নতি', 'চমৎকার'];
+        const neg = ['খারাপ', 'সমস্যা', 'অভিযোগ', 'দুর্নীতি', 'ব্যর্থ'];
+        opinions.forEach(o => {
+            const text = o.opinion.toLowerCase();
+            pos.forEach(w => { if (text.includes(w)) score += 2; });
+            neg.forEach(w => { if (text.includes(w)) score -= 2; });
+        });
+        const normalized = 50 + (score / (opinions.length * 2)) * 50;
+        indicator.style.left = Math.min(100, Math.max(0, normalized)) + '%';
+    }
+    
+    // Advice list
+    const advice = [];
+    const bjpDiff = (currentBoothDetails.BJP2024 || 0) - (currentBoothDetails.BJP2021 || 0);
+    const tmcDiff = (currentBoothDetails.TMC2024 || 0) - (currentBoothDetails.TMC2021 || 0);
+    const turnoutDiff = (currentBoothDetails.Poll2024 || 0) - (currentBoothDetails.Poll2021 || 0);
+    
+    if (bjpDiff < -10) advice.push({ type: 'danger', text: `🔴 বিজেপি ভোট ${Math.abs(bjpDiff).toFixed(1)}% কমেছে! স্থানীয় নেতৃত্ব পরিবর্তন করুন।` });
+    else if (bjpDiff > 10) advice.push({ type: 'success', text: `🟢 বিজেপি ভোট ${bjpDiff.toFixed(1)}% বেড়েছে! এই কৌশল অন্য বুথে প্রয়োগ করুন।` });
+    
+    if (tmcDiff > 10) advice.push({ type: 'warning', text: `⚠️ তৃণমূল ${tmcDiff.toFixed(1)}% ভোট বাড়িয়েছে। তাদের কৌশল বিশ্লেষণ করুন।` });
+    if (turnoutDiff < -10) advice.push({ type: 'danger', text: `📉 ভোটার উপস্থিতি ${Math.abs(turnoutDiff).toFixed(1)}% কমেছে! সচেতনতা বাড়ান।` });
+    
+    const muslim = parseFloat(currentBoothDetails.MuslimPercent);
+    if (muslim > 30 && bjpDiff < 0) advice.push({ type: 'warning', text: `🕌 ${muslim}% মুসলমান ভোটার। উন্নয়নের বার্তা দিন।` });
+    
+    if (currentBoothDetails.BoothName.includes('চা বাগান') && bjpDiff < -5) {
+        advice.push({ type: 'warning', text: '🍃 চা বাগানের শ্রমিকদের অসন্তোষ দূর করুন। বোনাস ও স্বাস্থ্য ইস্যুতে প্রচার চালান।' });
+    }
+    
+    const workers = workersData[currentBooth] || [];
+    const votersPerWorker = (currentBoothDetails.TotalElectors || 0) / (workers.length || 1);
+    if (votersPerWorker > 300) advice.push({ type: 'warning', text: `👥 প্রতি কর্মীর জন্য ${Math.round(votersPerWorker)} ভোটার। আরও ${Math.ceil(votersPerWorker / 200)} জন কর্মী দরকার।` });
+    
+    if (opinions.length === 0) advice.push({ type: 'info', text: '📝 এখনো কোনো মতামত নেই। মতামত সংগ্রহ শুরু করুন।' });
+    
+    const adviceDiv = document.getElementById('adviceList');
+    adviceDiv.innerHTML = advice.map(a => `
+        <div class="advice-item ${a.type}">
+            <i class="fas fa-${a.type==='danger'?'exclamation-circle':a.type==='warning'?'exclamation-triangle':a.type==='success'?'check-circle':'info-circle'}"></i>
+            ${a.text}
+        </div>
+    `).join('');
+}
+
+function showAnalysisModal() {
+    document.getElementById('modalAnalysis').innerHTML = currentBoothDetails?.MyAnalysis || translations[currentLanguage].analysisNotAvailable;
+    document.getElementById('analysisModal').style.display = 'block';
+}
+
+function showStrategyModal() {
+    document.getElementById('modalStrategy').innerHTML = currentBoothDetails?.MyStrategy || translations[currentLanguage].strategyNotAvailable;
+    document.getElementById('strategyModal').style.display = 'block';
+}
+
+// ================== WORKERS ==================
+function displayWorkers(workers) {
+    const container = document.getElementById('workersList');
+    if (!workers.length) {
+        container.innerHTML = `<p class="text-muted">${translations[currentLanguage].noWorkers}</p>`;
+        return;
+    }
+    container.innerHTML = workers.map((w, i) => `
+        <div class="item-card">
+            <div class="item-header">
+                <div><strong>${w.name}</strong><br>📞 ${w.phone} | 🎯 ${w.role}<br><small>যুক্ত: ${new Date(w.addedDate).toLocaleDateString()}</small>${w.notes ? `<br><small>📝 ${w.notes}</small>` : ''}</div>
+                <div class="item-actions">
+                    <button class="btn-edit" onclick="openEditWorker(${i})"><i class="fas fa-edit"></i> সম্পাদনা</button>
+                    <button class="btn-delete" onclick="deleteWorker(${i})"><i class="fas fa-trash"></i> মুছুন</button>
+                </div>
+            </div>
+            <div>
+                <a href="tel:${w.phone}" class="btn-call"><i class="fas fa-phone"></i> কল</a>
+                <a href="https://wa.me/${(w.whatsapp || w.phone).replace(/[^0-9]/g, '')}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> হোয়াটসঅ্যাপ</a>
+            </div>
+        </div>
+    `).join('');
+}
+
+function addWorker() {
+    const name = document.getElementById('workerName').value.trim();
+    const phone = document.getElementById('workerPhone').value.trim();
+    const whatsapp = document.getElementById('workerWhatsapp').value.trim() || phone;
+    const role = document.getElementById('workerRole').value.trim();
+    const notes = document.getElementById('workerNotes').value.trim();
+    const msgDiv = document.getElementById('workerMsg');
+    
+    if (!name || !phone || !role) {
+        msgDiv.innerHTML = `<div class="error">${translations[currentLanguage].required}</div>`;
+        return;
+    }
+    
+    const existing = workersData[currentBooth] || [];
+    if (existing.some(w => w.phone === phone)) {
+        msgDiv.innerHTML = `<div class="error">${translations[currentLanguage].duplicatePhone}</div>`;
+        return;
+    }
+    
+    if (!workersData[currentBooth]) workersData[currentBooth] = [];
+    workersData[currentBooth].push({ name, phone, whatsapp, role, notes, addedDate: new Date().toISOString() });
+    localStorage.setItem('workers', JSON.stringify(workersData));
+    
+    document.getElementById('workerForm').reset();
+    msgDiv.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
+    setTimeout(() => msgDiv.innerHTML = '', 2000);
+    displayWorkers(workersData[currentBooth]);
+    generateAnalysis();
+    updateDashboard();
+}
+
+function openEditWorker(index) {
+    const w = workersData[currentBooth][index];
+    document.getElementById('editWorkerIndex').value = index;
+    document.getElementById('editWorkerName').value = w.name;
+    document.getElementById('editWorkerPhone').value = w.phone;
+    document.getElementById('editWorkerWhatsapp').value = w.whatsapp || '';
+    document.getElementById('editWorkerRole').value = w.role;
+    document.getElementById('editWorkerNotes').value = w.notes || '';
+    document.getElementById('editWorkerModal').style.display = 'block';
+}
+
+function updateWorker() {
+    const index = document.getElementById('editWorkerIndex').value;
+    workersData[currentBooth][index] = {
+        name: document.getElementById('editWorkerName').value.trim(),
+        phone: document.getElementById('editWorkerPhone').value.trim(),
+        whatsapp: document.getElementById('editWorkerWhatsapp').value.trim(),
+        role: document.getElementById('editWorkerRole').value.trim(),
+        notes: document.getElementById('editWorkerNotes').value.trim(),
+        addedDate: workersData[currentBooth][index].addedDate
+    };
+    localStorage.setItem('workers', JSON.stringify(workersData));
+    closeModal('editWorkerModal');
+    displayWorkers(workersData[currentBooth]);
+    generateAnalysis();
+    updateDashboard();
+    showNotification(translations[currentLanguage].updateSuccess);
+}
+
+function deleteWorker(index) {
+    if (confirm(translations[currentLanguage].confirmDelete)) {
+        workersData[currentBooth].splice(index, 1);
+        if (workersData[currentBooth].length === 0) delete workersData[currentBooth];
+        localStorage.setItem('workers', JSON.stringify(workersData));
+        displayWorkers(workersData[currentBooth] || []);
+        generateAnalysis();
+        updateDashboard();
+        showNotification(translations[currentLanguage].deleteSuccess);
+    }
+}
+
+// ================== OPINIONS ==================
+function displayOpinions(opinions) {
+    const container = document.getElementById('opinionsList');
+    if (!opinions.length) {
+        container.innerHTML = `<p class="text-muted">${translations[currentLanguage].noOpinions}</p>`;
+        return;
+    }
+    container.innerHTML = opinions.map((o, i) => `
+        <div class="item-card">
+            <div class="item-header">
+                <div><strong>${o.personName}</strong> (📞 ${o.phone})<br>💬 ${o.opinion}<br><small>রেকর্ড: ${new Date(o.addedDate).toLocaleDateString()}</small>${o.notes ? `<br><small>📝 ${o.notes}</small>` : ''}</div>
+                <div class="item-actions">
+                    <button class="btn-edit" onclick="openEditOpinion(${i})"><i class="fas fa-edit"></i> সম্পাদনা</button>
+                    <button class="btn-delete" onclick="deleteOpinion(${i})"><i class="fas fa-trash"></i> মুছুন</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function addOpinion() {
+    const personName = document.getElementById('opinionName').value.trim();
+    const phone = document.getElementById('opinionPhone').value.trim();
+    const opinion = document.getElementById('opinionText').value.trim();
+    const notes = document.getElementById('opinionNotes').value.trim();
+    const msgDiv = document.getElementById('opinionMsg');
+    
+    if (!personName || !phone || !opinion) {
+        msgDiv.innerHTML = `<div class="error">${translations[currentLanguage].required}</div>`;
+        return;
+    }
+    
+    if (!opinionsData[currentBooth]) opinionsData[currentBooth] = [];
+    opinionsData[currentBooth].push({ personName, phone, opinion, notes, addedDate: new Date().toISOString() });
+    localStorage.setItem('opinions', JSON.stringify(opinionsData));
+    
+    document.getElementById('opinionForm').reset();
+    msgDiv.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
+    setTimeout(() => msgDiv.innerHTML = '', 2000);
+    displayOpinions(opinionsData[currentBooth]);
+    generateAnalysis();
+    updateDashboard();
+}
+
+function openEditOpinion(index) {
+    const o = opinionsData[currentBooth][index];
+    document.getElementById('editOpinionIndex').value = index;
+    document.getElementById('editOpinionName').value = o.personName;
+    document.getElementById('editOpinionPhone').value = o.phone;
+    document.getElementById('editOpinionText').value = o.opinion;
+    document.getElementById('editOpinionNotes').value = o.notes || '';
+    document.getElementById('editOpinionModal').style.display = 'block';
+}
+
+function updateOpinion() {
+    const index = document.getElementById('editOpinionIndex').value;
+    opinionsData[currentBooth][index] = {
+        personName: document.getElementById('editOpinionName').value.trim(),
+        phone: document.getElementById('editOpinionPhone').value.trim(),
+        opinion: document.getElementById('editOpinionText').value.trim(),
+        notes: document.getElementById('editOpinionNotes').value.trim(),
+        addedDate: opinionsData[currentBooth][index].addedDate
+    };
+    localStorage.setItem('opinions', JSON.stringify(opinionsData));
+    closeModal('editOpinionModal');
+    displayOpinions(opinionsData[currentBooth]);
+    generateAnalysis();
+    updateDashboard();
+    showNotification(translations[currentLanguage].updateSuccess);
+}
+
+function deleteOpinion(index) {
+    if (confirm(translations[currentLanguage].confirmDelete)) {
+        opinionsData[currentBooth].splice(index, 1);
+        if (opinionsData[currentBooth].length === 0) delete opinionsData[currentBooth];
+        localStorage.setItem('opinions', JSON.stringify(opinionsData));
+        displayOpinions(opinionsData[currentBooth] || []);
+        generateAnalysis();
+        updateDashboard();
+        showNotification(translations[currentLanguage].deleteSuccess);
+    }
+}
+
+// ================== EXPORTS ==================
+function exportCSVReport() {
+    if (!currentBoothDetails) return;
+    const workers = workersData[currentBooth] || [];
+    const opinions = opinionsData[currentBooth] || [];
+    let csv = "Field,Value\n";
+    Object.entries(currentBoothDetails).forEach(([k,v]) => csv += `${k},${v}\n`);
+    csv += "\nWorkers\nName,Phone,WhatsApp,Role,Notes,AddedDate\n";
+    workers.forEach(w => csv += `"${w.name}",${w.phone},${w.whatsapp},"${w.role}","${w.notes}",${w.addedDate}\n`);
+    csv += "\nOpinions\nPersonName,Phone,Opinion,Notes,AddedDate\n";
+    opinions.forEach(o => csv += `"${o.personName}",${o.phone},"${o.opinion}","${o.notes}",${o.addedDate}\n`);
+    
+    const blob = new Blob([csv], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `booth_${currentBooth}_report.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showNotification('CSV রিপোর্ট ডাউনলোড শুরু');
+}
+
 function exportPDFReport() {
     if (!currentBoothDetails) return;
     const element = document.createElement('div');
     element.innerHTML = `
         <h1>নাগরাকাটা (এসটি) - বুথ ${currentBoothDetails.BoothNo} রিপোর্ট</h1>
-        <p>তারিখ: ${new Date().toLocaleDateString('bn-BD')}</p><hr/>
+        <p>তারিখ: ${new Date().toLocaleDateString('bn-BD')}</p><hr>
         <h2>বুথের তথ্য</h2>
-        <table border="1" cellpadding="8" style="border-collapse: collapse; width: 100%;">
-            <tr><td><strong>বুথ নং</strong></td><td>${currentBoothDetails.BoothNo}</td></tr>
-            <tr><td><strong>বুথের নাম</strong></td><td>${currentBoothDetails.BoothName}</td></tr>
-            <tr><td><strong>সেগমেন্ট</strong></td><td>${currentBoothDetails.Segment}</td></tr>
-            <tr><td><strong>মুসলমান %</strong></td><td>${currentBoothDetails.MuslimPercent}%</td></tr>
-            <tr><td><strong>মোট ভোটার</strong></td><td>${currentBoothDetails.TotalElectors}</td></tr>
-            <tr><td><strong>২০২১ ভোটদান</strong></td><td>${currentBoothDetails.Poll2021}%</td></tr>
-            <tr><td><strong>২০২৪ ভোটদান</strong></td><td>${currentBoothDetails.Poll2024}%</td></tr>
-            <tr><td><strong>বিজেপি ২০২১</strong></td><td>${currentBoothDetails.BJP2021}%</td></tr>
-            <tr><td><strong>তৃণমূল ২০২১</strong></td><td>${currentBoothDetails.TMC2021}%</td></tr>
-            <tr><td><strong>বিজেপি ২০২৪</strong></td><td>${currentBoothDetails.BJP2024}%</td></tr>
-            <tr><td><strong>তৃণমূল ২০২৪</strong></td><td>${currentBoothDetails.TMC2024}%</td></tr>
-        </table>
+        <table border="1">${document.getElementById('boothInfoTable').innerHTML}</table>
         <h2>বিশ্লেষণ</h2><p>${currentBoothDetails.MyAnalysis || 'বিশ্লেষণ নেই'}</p>
         <h2>কৌশল</h2><p>${currentBoothDetails.MyStrategy || 'কৌশল নেই'}</p>
-        <h2>কর্মী তালিকা</h2>${renderWorkersForPDF()}
-        <h2>জনমত</h2>${renderOpinionsForPDF()}
+        <h2>কর্মী তালিকা</h2>${workersData[currentBooth]?.map(w => `<p>${w.name} - ${w.phone} - ${w.role}</p>`).join('') || '<p>কোনো কর্মী নেই</p>'}
+        <h2>জনমত</h2>${opinionsData[currentBooth]?.map(o => `<p>${o.personName}: ${o.opinion}</p>`).join('') || '<p>কোনো মতামত নেই</p>'}
     `;
-    html2pdf().from(element).set({
-        margin: [0.5, 0.5, 0.5, 0.5],
-        filename: `booth_${currentBoothDetails.BoothNo}_report.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, letterRendering: true },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    }).save();
-    showNotification('PDF রিপোর্ট তৈরি হচ্ছে...');
+    html2pdf().from(element).set({ filename: `booth_${currentBooth}_report.pdf` }).save();
+    showNotification('PDF রিপোর্ট তৈরি হচ্ছে');
 }
 
-function renderWorkersForPDF() {
-    const workers = workersData[currentBooth] || [];
-    if (workers.length === 0) return '<p>কোনো কর্মী নেই</p>';
-    let html = '<table border="1" cellpadding="5"><tr><th>নাম</th><th>ফোন</th><th>দায়িত্ব</th></tr>';
-    workers.forEach(w => { html += `<tr><td>${w.name}</td><td>${w.phone}</td><td>${w.role}</td></tr>`; });
-    html += '</table>';
-    return html;
-}
-
-function renderOpinionsForPDF() {
-    const opinions = opinionsData[currentBooth] || [];
-    if (opinions.length === 0) return '<p>কোনো মতামত নেই</p>';
-    let html = '<table border="1" cellpadding="5"><tr><th>নাম</th><th>মতামত</th></tr>';
-    opinions.forEach(o => { html += `<tr><td>${o.personName}</td><td>${o.opinion}</td></tr>`; });
-    html += '</table>';
-    return html;
-}
-
-// ================== Dark Mode ==================
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const btn = document.getElementById('darkModeBtn');
-    const isDark = document.body.classList.contains('dark-mode');
-    btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    localStorage.setItem('darkMode', isDark);
-}
-
-// ================== Booth Data Loading ==================
-function populateBoothDropdown() {
-    const select = document.getElementById('boothSelect');
-    if (!select) return;
-    select.innerHTML = `<option value="">${translations[currentLanguage].chooseOption}</option>`;
-    if (!boothData || boothData.length === 0) return;
-    boothData.sort((a,b) => (a.BoothNo || 0) - (b.BoothNo || 0)).forEach(b => {
-        const option = document.createElement('option');
-        option.value = b.BoothNo;
-        option.textContent = `${b.BoothNo}. ${b.BoothName} (${b.Segment}, ${b.MuslimPercent}% মুসলমান)`;
-        select.appendChild(option);
-    });
-}
-
-function loadBoothDetails() {
-    const boothNo = document.getElementById('boothSelect').value;
-    if (!boothNo) { document.getElementById('boothDetails').style.display = 'none'; return; }
-    currentBooth = boothNo;
-    document.getElementById('boothDetails').style.display = 'block';
-    const booth = boothData.find(b => b.BoothNo == boothNo);
-    if (booth) {
-        currentBoothDetails = booth;
-        displayBoothDetails(booth);
-        generateAnalysis(booth, workersData[boothNo] || [], opinionsData[boothNo] || []);
-        updateBoothStatus(booth);
-    }
-    displayWorkers(workersData[boothNo] || []);
-    displayOpinions(opinionsData[boothNo] || []);
-}
-
-function displayBoothDetails(b) {
-    const table = document.getElementById('analysisTable');
-    const title = document.getElementById('boothTitle');
-    if (title) title.innerHTML = `${b.BoothNo}. ${b.BoothName}`;
-    if (!table) return;
-    table.innerHTML = `
-        <tr><td>বুথ নং</td><td>${b.BoothNo}</td></tr>
-        <tr><td>বুথের নাম</td><td>${b.BoothName}</td></tr>
-        <tr><td>সেগমেন্ট</td><td>${b.Segment}</td></tr>
-        <tr><td>মুসলমান %</td><td>${b.MuslimPercent}%</td></tr>
-        <tr><td>মোট ভোটার</td><td>${b.TotalElectors}</td></tr>
-        <tr><td>ভোট % ২০২১</td><td>${b.Poll2021}%</td></tr>
-        <tr><td>ভোট % ২০২৪</td><td>${b.Poll2024}%</td></tr>
-        <tr><td>বিজেপি ২০২১</td><td>${b.BJP2021}%</td></tr>
-        <tr><td>তৃণমূল ২০২১</td><td>${b.TMC2021}%</td></tr>
-        <tr><td>অন্যান্য ২০২১</td><td>${b.Other2021}%</td></tr>
-        <tr><td>বিজেপি ২০২৪</td><td>${b.BJP2024}%</td></tr>
-        <tr><td>তৃণমূল ২০২৪</td><td>${b.TMC2024}%</td></tr>
-        <tr><td>অন্যান্য ২০২৪</td><td>${b.Other2024}%</td></tr>
-    `;
-    const target = boothTargets[currentBooth];
-    const targetDisplay = document.getElementById('targetDisplay');
-    if (targetDisplay) {
-        targetDisplay.innerHTML = target ? `🎯 টার্গেট: ${target}% ভোট (বর্তমান: ${b.BJP2024}%)` : '🎯 এখনো টার্গেট সেট করা হয়নি';
-    }
-}
-
-function updateBoothStatus(booth) {
-    const badge = document.getElementById('boothStatusBadge');
-    if (!badge) return;
-    const diff = (booth.BJP2024 || 0) - (booth.BJP2021 || 0);
-    if (diff < -10) {
-        badge.innerHTML = '🔴 বিপদজনক';
-        badge.className = 'booth-status status-critical';
-    } else if (Math.abs(diff) <= 10 && (booth.BJP2024 || 0) < 55) {
-        badge.innerHTML = '🟡 সুইং বুথ';
-        badge.className = 'booth-status status-swing';
-    } else if (diff > 5) {
-        badge.innerHTML = '🟢 নিরাপদ';
-        badge.className = 'booth-status status-safe';
-    } else {
-        badge.innerHTML = '⚪ স্থিতিশীল';
-        badge.className = 'booth-status';
-    }
-}
-
-function showAnalysisModal() {
-    if (!currentBoothDetails) return;
-    document.getElementById('modalAnalysisText').innerText = currentBoothDetails.MyAnalysis || translations[currentLanguage].analysisNotAvailable;
-    document.getElementById('analysisModal').style.display = 'block';
-}
-
-function showStrategyModal() {
-    if (!currentBoothDetails) return;
-    document.getElementById('modalStrategyText').innerText = currentBoothDetails.MyStrategy || translations[currentLanguage].strategyNotAvailable;
-    document.getElementById('strategyModal').style.display = 'block';
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-}
-
-window.onclick = function(event) {
-    if (event.target.classList.contains('modal')) event.target.style.display = 'none';
-};
-
+// ================== UTILITIES ==================
 function toggleSection(sectionId) {
     const section = document.getElementById(sectionId);
-    const chevron = document.getElementById(sectionId === 'workerSection' ? 'workerChevron' : sectionId === 'opinionSection' ? 'opinionChevron' : sectionId === 'rankingSection' ? 'rankingChevron' : 'progressChevron');
-    if (!section || !chevron) return;
+    const chevron = document.getElementById(sectionId === 'workerSection' ? 'workerChevron' : 
+                                         sectionId === 'opinionSection' ? 'opinionChevron' :
+                                         sectionId === 'rankingSection' ? 'rankingChevron' : 'progressChevron');
     if (section.style.maxHeight && section.style.maxHeight !== '0px') {
         section.style.maxHeight = '0';
         chevron.classList.remove('fa-chevron-up');
@@ -424,366 +655,17 @@ function toggleSection(sectionId) {
 
 function toggleForm(formId) {
     const form = document.getElementById(formId);
-    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
-function generateAnalysis(booth, workers, opinions) {
-    updateVoteChart(booth);
-    updateKeywordCloud(opinions);
-    updateSentimentMeter(opinions);
-    displayAdvice(generateEnhancedAdvice(booth, workers, opinions));
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
 }
 
-function updateVoteChart(booth) {
-    const canvas = document.getElementById('voteChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (myChart) myChart.destroy();
-    myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['২০২১', '২০২৪'],
-            datasets: [
-                { label: 'বিজেপি', data: [booth.BJP2021 || 0, booth.BJP2024 || 0], backgroundColor: '#ff6b6b', borderRadius: 6 },
-                { label: 'তৃণমূল', data: [booth.TMC2021 || 0, booth.TMC2024 || 0], backgroundColor: '#4ecdc4', borderRadius: 6 },
-                { label: 'অন্যান্য', data: [booth.Other2021 || 0, booth.Other2024 || 0], backgroundColor: '#95a5a6', borderRadius: 6 }
-            ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
-    });
-}
-
-function updateKeywordCloud(opinions) {
-    const container = document.getElementById('keywordCloud');
-    if (!container) return;
-    if (!opinions || opinions.length === 0) {
-        container.innerHTML = `<span class="text-muted">${translations[currentLanguage].noOpinions}</span>`;
-        return;
-    }
-    const allText = opinions.map(o => (o.opinion || '') + ' ' + (o.notes || '')).join(' ');
-    const words = allText.split(/[\s,।]+/).filter(w => w.length > 1);
-    const stopwords = ['এবং', 'করে', 'থেকে', 'এই', 'যে', 'কি', 'তা', 'জন্য', 'হয়', 'না', 'তে', 'ের', 'আছে', 'ছিল', 'হবে'];
-    const filtered = words.filter(w => !stopwords.includes(w) && !/^\d+$/.test(w));
-    const freq = {};
-    filtered.forEach(w => freq[w] = (freq[w] || 0) + 1);
-    const sorted = Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 20);
-    const maxFreq = sorted[0]?.[1] || 1;
-    container.innerHTML = sorted.map(([word, count]) => {
-        const size = count / maxFreq;
-        let cls = 'keyword-tag';
-        if (size > 0.7) cls += ' large';
-        else if (size > 0.4) cls += ' medium';
-        else cls += ' small';
-        return `<span class="${cls}">${word}</span>`;
-    }).join('');
-}
-
-function updateSentimentMeter(opinions) {
-    const indicator = document.getElementById('sentimentIndicator');
-    if (!indicator) return;
-    if (!opinions || opinions.length === 0) { indicator.style.left = '50%'; return; }
-    let score = 0;
-    const positiveWords = ['ভাল', 'সন্তুষ্ট', 'ধন্যবাদ', 'উন্নতি', 'চমৎকার', 'ঠিক'];
-    const negativeWords = ['খারাপ', 'সমস্যা', 'অভিযোগ', 'দুর্নীতি', 'ব্যর্থ', 'বিরক্ত'];
-    opinions.forEach(o => {
-        const text = (o.opinion || '').toLowerCase();
-        positiveWords.forEach(w => { if (text.includes(w)) score += 2; });
-        negativeWords.forEach(w => { if (text.includes(w)) score -= 2; });
-    });
-    const maxScore = opinions.length * 2;
-    const normalized = 50 + (score / maxScore) * 50;
-    const final = Math.min(100, Math.max(0, normalized));
-    indicator.style.left = final + '%';
-}
-
-function generateEnhancedAdvice(booth, workers, opinions) {
-    const advice = [];
-    const bjpDiff = (booth.BJP2024 || 0) - (booth.BJP2021 || 0);
-    const tmcDiff = (booth.TMC2024 || 0) - (booth.TMC2021 || 0);
-    const turnoutDiff = (booth.Poll2024 || 0) - (booth.Poll2021 || 0);
-    
-    if (bjpDiff < -10) advice.push({ type: 'danger', text: `🔴 বিজেপি ভোট ${Math.abs(bjpDiff).toFixed(1)}% কমেছে! স্থানীয় নেতৃত্ব পরিবর্তনের প্রয়োজন হতে পারে।` });
-    else if (bjpDiff > 10) advice.push({ type: 'success', text: `🟢 বিজেপি ভোট ${bjpDiff.toFixed(1)}% বেড়েছে! এই কৌশল অন্য বুথে প্রয়োগ করুন।` });
-    
-    if (tmcDiff > 10) advice.push({ type: 'warning', text: `⚠️ তৃণমূল ${tmcDiff.toFixed(1)}% ভোট বাড়িয়েছে। তাদের কৌশল বিশ্লেষণ করুন।` });
-    if (turnoutDiff < -10) advice.push({ type: 'danger', text: `📉 ভোটার উপস্থিতি ${Math.abs(turnoutDiff).toFixed(1)}% কমেছে। ভোটার সচেতনতা বাড়ান।` });
-    
-    const muslimPercent = parseFloat(booth.MuslimPercent);
-    if (muslimPercent > 30 && bjpDiff < 0) advice.push({ type: 'warning', text: `🕌 ${muslimPercent}% মুসলমান ভোটার। তাদের কাছে উন্নয়নের বার্তা ও সংখ্যালঘু-বান্ধব প্রকল্পের কথা বলুন।` });
-    
-    if (booth.BoothName.includes('চা বাগান') && bjpDiff < -5) advice.push({ type: 'warning', text: '🍃 চা বাগানের শ্রমিকদের মধ্যে অসন্তোষ। বোনাস, মজুরি ও স্বাস্থ্য সুবিধার ইস্যুতে তৃণমূলের ব্যর্থতা তুলে ধরুন।' });
-    
-    const votersPerWorker = (booth.TotalElectors || 0) / (workers.length || 1);
-    if (votersPerWorker > 300) advice.push({ type: 'warning', text: `👥 প্রতি কর্মীর জন্য ${Math.round(votersPerWorker)} ভোটার। আরও ${Math.ceil(votersPerWorker / 200)} জন কর্মী প্রয়োজন।` });
-    
-    if (opinions.length === 0) advice.push({ type: 'info', text: translations[currentLanguage].advice.noOpinions });
-    return advice;
-}
-
-function displayAdvice(adviceList) {
-    const container = document.getElementById('adviceList');
-    if (!container) return;
-    if (adviceList.length === 0) { container.innerHTML = '<p class="text-muted">কোনো পরামর্শ নেই</p>'; return; }
-    container.innerHTML = adviceList.map(item => `
-        <div class="advice-item ${item.type}">
-            <i class="fas fa-${item.type==='danger'?'exclamation-circle':item.type==='warning'?'exclamation-triangle':item.type==='success'?'check-circle':'info-circle'}"></i>
-            ${item.text}
-        </div>
-    `).join('');
-}
-
-function exportBoothReport() {
-    if (!currentBoothDetails) return;
-    const booth = currentBoothDetails;
-    const workers = workersData[currentBooth] || [];
-    const opinions = opinionsData[currentBooth] || [];
-    let csv = "Field,Value\n";
-    Object.entries(booth).forEach(([k,v]) => csv += `${k},${v}\n`);
-    csv += "\nWorkers\nName,Phone,WhatsApp,Role,Notes,AddedDate\n";
-    workers.forEach(w => csv += `"${w.name}",${w.phone},${w.whatsapp},"${w.role}","${w.notes}",${w.addedDate}\n`);
-    csv += "\nOpinions\nPersonName,Phone,Opinion,Notes,AddedDate\n";
-    opinions.forEach(o => csv += `"${o.personName}",${o.phone},"${o.opinion}","${o.notes}",${o.addedDate}\n`);
-    const blob = new Blob([csv], {type: 'text/csv'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `booth_${booth.BoothNo}_report.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showNotification('CSV রিপোর্ট ডাউনলোড শুরু হয়েছে');
-}
-
-function showNotification(message) {
-    const notif = document.createElement('div');
-    notif.className = 'notification-badge';
-    notif.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
-    notif.onclick = () => notif.remove();
-    document.body.appendChild(notif);
-    setTimeout(() => notif.remove(), 5000);
-}
-
-// ================== Worker Functions ==================
-function displayWorkers(workers) {
-    const container = document.getElementById('workersList');
-    if (!container) return;
-    if (!workers || workers.length === 0) { container.innerHTML = `<p class="text-muted">${translations[currentLanguage].noWorkers}</p>`; return; }
-    let html = '';
-    workers.forEach((w, index) => {
-        html += `
-            <div class="item-card">
-                <div class="item-header">
-                    <div class="item-info">
-                        <strong>${w.name}</strong><br>
-                        📞 ${w.phone} | 🎯 ${w.role}<br>
-                        <small>যুক্ত: ${new Date(w.addedDate).toLocaleDateString()}</small>
-                        ${w.notes ? `<br><small>📝 ${w.notes}</small>` : ''}
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn-edit" onclick="openEditWorkerModal(${index})"><i class="fas fa-edit"></i> সম্পাদনা</button>
-                        <button class="btn-delete" onclick="deleteWorker(${index})"><i class="fas fa-trash"></i> মুছুন</button>
-                    </div>
-                </div>
-                <div style="margin-top:12px;">
-                    <a href="tel:${w.phone}" class="btn-call"><i class="fas fa-phone"></i> কল</a>
-                    <a href="https://wa.me/${(w.whatsapp || w.phone).replace(/[^0-9]/g, '')}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> হোয়াটসঅ্যাপ</a>
-                </div>
-            </div>
-        `;
-    });
-    container.innerHTML = html;
-}
-
-function addNewWorker(event) {
-    event.preventDefault();
-    const formMsg = document.getElementById('workerFormMessage');
-    if (formMsg) formMsg.innerHTML = '<div class="loading">যুক্ত হচ্ছে...</div>';
-    const phone = document.getElementById('workerPhone').value.trim();
-    const whatsapp = document.getElementById('workerWhatsapp').value.trim() || phone;
-    const existingWorkers = workersData[currentBooth] || [];
-    if (existingWorkers.some(w => w.phone === phone)) {
-        if (formMsg) formMsg.innerHTML = `<div class="error">${translations[currentLanguage].errorMsg} ${translations[currentLanguage].duplicatePhone}</div>`;
-        return;
-    }
-    const workerData = {
-        name: document.getElementById('workerName').value.trim(),
-        phone: phone,
-        whatsapp: whatsapp,
-        role: document.getElementById('workerRole').value.trim(),
-        notes: document.getElementById('workerNotes').value.trim(),
-        addedDate: new Date().toISOString()
-    };
-    if (!workerData.name || !workerData.phone || !workerData.role) {
-        if (formMsg) formMsg.innerHTML = `<div class="error">${translations[currentLanguage].errorMsg} ${translations[currentLanguage].required}</div>`;
-        return;
-    }
-    if (!workersData[currentBooth]) workersData[currentBooth] = [];
-    workersData[currentBooth].push(workerData);
-    localStorage.setItem('workers', JSON.stringify(workersData));
-    if (formMsg) formMsg.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
-    document.getElementById('workerForm').reset();
-    displayWorkers(workersData[currentBooth]);
-    if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth], opinionsData[currentBooth] || []);
-    updateDashboard();
-    loadWeeklyTarget();
-}
-
-function openEditWorkerModal(index) {
-    const worker = workersData[currentBooth][index];
-    document.getElementById('editWorkerId').value = index;
-    document.getElementById('editWorkerName').value = worker.name;
-    document.getElementById('editWorkerPhone').value = worker.phone;
-    document.getElementById('editWorkerWhatsapp').value = worker.whatsapp || '';
-    document.getElementById('editWorkerRole').value = worker.role;
-    document.getElementById('editWorkerNotes').value = worker.notes || '';
-    document.getElementById('editWorkerModal').style.display = 'block';
-}
-
-function updateWorker(event) {
-    event.preventDefault();
-    const index = document.getElementById('editWorkerId').value;
-    workersData[currentBooth][index] = {
-        name: document.getElementById('editWorkerName').value.trim(),
-        phone: document.getElementById('editWorkerPhone').value.trim(),
-        whatsapp: document.getElementById('editWorkerWhatsapp').value.trim() || document.getElementById('editWorkerPhone').value.trim(),
-        role: document.getElementById('editWorkerRole').value.trim(),
-        notes: document.getElementById('editWorkerNotes').value.trim(),
-        addedDate: workersData[currentBooth][index].addedDate
-    };
-    localStorage.setItem('workers', JSON.stringify(workersData));
-    closeModal('editWorkerModal');
-    displayWorkers(workersData[currentBooth]);
-    if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth], opinionsData[currentBooth] || []);
-    updateDashboard();
-    loadWeeklyTarget();
-    showNotification(translations[currentLanguage].updateSuccess);
-}
-
-function deleteWorker(index) {
-    if (confirm(translations[currentLanguage].confirmDelete)) {
-        workersData[currentBooth].splice(index, 1);
-        if (workersData[currentBooth].length === 0) delete workersData[currentBooth];
-        localStorage.setItem('workers', JSON.stringify(workersData));
-        displayWorkers(workersData[currentBooth] || []);
-        if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth] || []);
-        updateDashboard();
-        loadWeeklyTarget();
-        showNotification(translations[currentLanguage].deleteSuccess);
-    }
-}
-
-// ================== Opinion Functions ==================
-function displayOpinions(opinions) {
-    const container = document.getElementById('opinionsList');
-    if (!container) return;
-    if (!opinions || opinions.length === 0) { container.innerHTML = `<p class="text-muted">${translations[currentLanguage].noOpinions}</p>`; return; }
-    let html = '';
-    opinions.forEach((o, index) => {
-        html += `
-            <div class="item-card">
-                <div class="item-header">
-                    <div class="item-info">
-                        <strong>${o.personName}</strong> (📞 ${o.phone})<br>
-                        💬 ${o.opinion}<br>
-                        <small>রেকর্ড: ${new Date(o.addedDate).toLocaleDateString()}</small>
-                        ${o.notes ? `<br><small>📝 ${o.notes}</small>` : ''}
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn-edit" onclick="openEditOpinionModal(${index})"><i class="fas fa-edit"></i> সম্পাদনা</button>
-                        <button class="btn-delete" onclick="deleteOpinion(${index})"><i class="fas fa-trash"></i> মুছুন</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    container.innerHTML = html;
-}
-
-function addNewOpinion(event) {
-    event.preventDefault();
-    const formMsg = document.getElementById('opinionFormMessage');
-    if (formMsg) formMsg.innerHTML = '<div class="loading">যুক্ত হচ্ছে...</div>';
-    const opinionData = {
-        personName: document.getElementById('opinionPersonName').value.trim(),
-        phone: document.getElementById('opinionPhone').value.trim(),
-        opinion: document.getElementById('opinionText').value.trim(),
-        notes: document.getElementById('opinionNotes').value.trim(),
-        addedDate: new Date().toISOString()
-    };
-    if (!opinionData.personName || !opinionData.phone || !opinionData.opinion) {
-        if (formMsg) formMsg.innerHTML = `<div class="error">${translations[currentLanguage].errorMsg} ${translations[currentLanguage].required}</div>`;
-        return;
-    }
-    if (!opinionsData[currentBooth]) opinionsData[currentBooth] = [];
-    opinionsData[currentBooth].push(opinionData);
-    localStorage.setItem('opinions', JSON.stringify(opinionsData));
-    if (formMsg) formMsg.innerHTML = `<div class="success">✅ ${translations[currentLanguage].successMsg}</div>`;
-    document.getElementById('opinionForm').reset();
-    displayOpinions(opinionsData[currentBooth]);
-    if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth]);
-    updateDashboard();
-    loadWeeklyTarget();
-}
-
-function openEditOpinionModal(index) {
-    const opinion = opinionsData[currentBooth][index];
-    document.getElementById('editOpinionId').value = index;
-    document.getElementById('editOpinionPersonName').value = opinion.personName;
-    document.getElementById('editOpinionPhone').value = opinion.phone;
-    document.getElementById('editOpinionText').value = opinion.opinion;
-    document.getElementById('editOpinionNotes').value = opinion.notes || '';
-    document.getElementById('editOpinionModal').style.display = 'block';
-}
-
-function updateOpinion(event) {
-    event.preventDefault();
-    const index = document.getElementById('editOpinionId').value;
-    opinionsData[currentBooth][index] = {
-        personName: document.getElementById('editOpinionPersonName').value.trim(),
-        phone: document.getElementById('editOpinionPhone').value.trim(),
-        opinion: document.getElementById('editOpinionText').value.trim(),
-        notes: document.getElementById('editOpinionNotes').value.trim(),
-        addedDate: opinionsData[currentBooth][index].addedDate
-    };
-    localStorage.setItem('opinions', JSON.stringify(opinionsData));
-    closeModal('editOpinionModal');
-    displayOpinions(opinionsData[currentBooth]);
-    if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth]);
-    updateDashboard();
-    loadWeeklyTarget();
-    showNotification(translations[currentLanguage].updateSuccess);
-}
-
-function deleteOpinion(index) {
-    if (confirm(translations[currentLanguage].confirmDelete)) {
-        opinionsData[currentBooth].splice(index, 1);
-        if (opinionsData[currentBooth].length === 0) delete opinionsData[currentBooth];
-        localStorage.setItem('opinions', JSON.stringify(opinionsData));
-        displayOpinions(opinionsData[currentBooth] || []);
-        if (currentBoothDetails) generateAnalysis(currentBoothDetails, workersData[currentBooth] || [], opinionsData[currentBooth] || []);
-        updateDashboard();
-        loadWeeklyTarget();
-        showNotification(translations[currentLanguage].deleteSuccess);
-    }
-}
-
-// ================== Initialize ==================
-window.onload = function() {
-    updateCountdown();
-    setInterval(updateCountdown, 3600000);
-    if (localStorage.getItem('darkMode') === 'true') toggleDarkMode();
-    fetch('data/boothData.json')
-        .then(res => res.json())
-        .then(data => {
-            boothData = data;
-            populateBoothDropdown();
-            updateDashboard();
-            loadWeeklyTarget();
-            loadDangerRanking();
-        })
-        .catch(err => console.error('Error loading data:', err));
-    window.addEventListener('beforeunload', () => {
-        localStorage.setItem('workers', JSON.stringify(workersData));
-        localStorage.setItem('opinions', JSON.stringify(opinionsData));
-        localStorage.setItem('boothTargets', JSON.stringify(boothTargets));
-    });
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) event.target.style.display = 'none';
 };
+
+// ================== INITIALIZE ==================
+loadBoothData();
+setInterval(() => updateDashboard(), 1000);
