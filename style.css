@@ -86,26 +86,6 @@ body.dark-mode .card {
     font-size: 18px;
 }
 
-.lang-switch {
-    display: flex;
-    gap: 6px;
-}
-
-.lang-switch button {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    padding: 8px 14px;
-    border-radius: 30px;
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.lang-switch button.active {
-    background: #ff9800;
-    color: #1e3c72;
-}
-
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -119,6 +99,11 @@ body.dark-mode .card {
     padding: 20px;
     text-align: center;
     box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
 }
 
 body.dark-mode .dashboard-card {
@@ -187,6 +172,7 @@ body.dark-mode .alert-card {
     border-radius: 30px;
     cursor: pointer;
     font-weight: 600;
+    transition: all 0.2s;
 }
 
 .tab-btn.active {
@@ -206,10 +192,15 @@ body.dark-mode .alert-card {
     padding: 12px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
 .ranking-item:hover {
     background: #f8f9fa;
+}
+
+body.dark-mode .ranking-item:hover {
+    background: #0f3460;
 }
 
 .ranking-item .booth-name {
@@ -234,7 +225,7 @@ body.dark-mode .alert-card {
 }
 
 .progress-item span:first-child {
-    width: 110px;
+    width: 150px;
     font-weight: 500;
 }
 
@@ -369,6 +360,11 @@ body.dark-mode .target-section {
     color: white;
     font-weight: 600;
     cursor: pointer;
+    transition: background 0.2s;
+}
+
+.action-btn:hover {
+    background: #138496;
 }
 
 .chart-container {
@@ -391,6 +387,7 @@ body.dark-mode .target-section {
     border-radius: 30px;
     font-size: 14px;
     transition: all 0.2s;
+    cursor: default;
 }
 
 .keyword-tag.large { font-size: 20px; padding: 8px 20px; }
@@ -471,6 +468,11 @@ body.dark-mode .target-section {
     color: white;
     cursor: pointer;
     font-weight: 600;
+    transition: background 0.2s;
+}
+
+.add-btn:hover, .export-btn:hover, .submit-btn:hover {
+    opacity: 0.9;
 }
 
 .submit-btn { background: #28a745; }
@@ -478,11 +480,15 @@ body.dark-mode .target-section {
 .cancel-btn {
     padding: 12px;
     border-radius: 30px;
-    width: 100%;
     border: none;
     color: white;
     cursor: pointer;
     font-weight: 600;
+    transition: background 0.2s;
+}
+
+.cancel-btn:hover {
+    opacity: 0.9;
 }
 
 .form-container {
@@ -491,10 +497,25 @@ body.dark-mode .target-section {
     border-radius: 16px;
     margin: 10px 0;
     display: none;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-container h3 {
+    margin-bottom: 15px;
+    color: #1e3c72;
 }
 
 body.dark-mode .form-container {
     background: #0f3460;
+}
+
+body.dark-mode .form-container h3 {
+    color: #ff9800;
 }
 
 input, select, textarea {
@@ -505,12 +526,22 @@ input, select, textarea {
     font-size: 14px;
     margin-bottom: 10px;
     background: white;
+    transition: border 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #1e3c72;
 }
 
 body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
     background: #0a0f1a;
     border-color: #2a3a5a;
     color: white;
+}
+
+body.dark-mode input:focus, body.dark-mode textarea:focus {
+    border-color: #ff9800;
 }
 
 .list-container {
@@ -523,6 +554,11 @@ body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
     padding: 16px;
     margin-bottom: 12px;
     border-radius: 14px;
+    transition: transform 0.2s;
+}
+
+.item-card:hover {
+    transform: translateX(4px);
 }
 
 body.dark-mode .item-card {
@@ -548,10 +584,13 @@ body.dark-mode .item-card {
     border: none;
     cursor: pointer;
     font-size: 12px;
+    transition: opacity 0.2s;
 }
 
 .btn-edit { background: #ffc107; }
 .btn-delete { background: #dc3545; color: white; }
+.btn-edit:hover, .btn-delete:hover { opacity: 0.8; }
+
 .btn-call, .btn-wa {
     padding: 6px 12px;
     border-radius: 20px;
@@ -559,9 +598,11 @@ body.dark-mode .item-card {
     font-size: 12px;
     display: inline-block;
     margin-right: 6px;
+    transition: opacity 0.2s;
 }
 .btn-call { background: #28a745; color: white; }
 .btn-wa { background: #25D366; color: white; }
+.btn-call:hover, .btn-wa:hover { opacity: 0.8; }
 
 .modal {
     display: none;
@@ -572,6 +613,7 @@ body.dark-mode .item-card {
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
 }
 
 .modal-content {
@@ -582,6 +624,7 @@ body.dark-mode .item-card {
     max-width: 500px;
     border-radius: 24px;
     position: relative;
+    animation: fadeIn 0.3s;
 }
 
 body.dark-mode .modal-content {
@@ -601,6 +644,11 @@ body.dark-mode .modal-content {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background 0.2s;
+}
+
+.close:hover {
+    background: #ddd;
 }
 
 .modal-text {
@@ -621,6 +669,8 @@ body.dark-mode .modal-content {
     border-radius: 40px;
     z-index: 1000;
     animation: slideIn 0.3s;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 @keyframes slideIn {
@@ -643,6 +693,7 @@ body.dark-mode .modal-content {
     .header-card { flex-direction: column; text-align: center; }
     .header-left { flex-direction: column; }
     .action-buttons { flex-direction: column; }
+    .progress-item span:first-child { width: 120px; }
 }
 
 @media (max-width: 480px) {
